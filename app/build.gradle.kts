@@ -115,6 +115,7 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.splashscreen)
     implementation(libs.androidx.palette)
+    implementation(libs.androidx.appcompat)
 
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)

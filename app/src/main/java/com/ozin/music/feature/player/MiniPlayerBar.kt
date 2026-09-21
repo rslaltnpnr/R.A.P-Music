@@ -23,9 +23,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.ozin.music.R
 import com.ozin.music.core.data.mediastore.MediaStoreScanner
 
 @Composable
@@ -62,13 +64,13 @@ fun MiniPlayerBar(onExpand: () -> Unit, viewModel: PlayerViewModel = hiltViewMod
             AnimatedContent(targetState = state.isPlaying, label = "play_pause") { playing ->
                 Icon(
                     imageVector = if (playing) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                    contentDescription = "Play/Pause",
+                    contentDescription = stringResource(R.string.player_play_pause),
                     tint = MaterialTheme.colorScheme.onSurface,
                 )
             }
         }
         IconButton(onClick = { viewModel.next() }) {
-            Icon(Icons.Filled.SkipNext, contentDescription = "Next", tint = MaterialTheme.colorScheme.onSurface)
+            Icon(Icons.Filled.SkipNext, contentDescription = stringResource(R.string.player_next), tint = MaterialTheme.colorScheme.onSurface)
         }
     }
 }

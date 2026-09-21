@@ -4,6 +4,10 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -40,6 +44,7 @@ import androidx.compose.ui.res.stringResource
 import com.ozin.music.core.player.PlayerController
 import com.ozin.music.core.settings.AppSettings
 import com.ozin.music.core.settings.SettingsRepository
+import com.ozin.music.core.settings.toLocaleListCompat
 import com.ozin.music.core.ui.theme.OzinMusicTheme
 import com.ozin.music.feature.bluetooth.BluetoothDevicesScreen
 import com.ozin.music.feature.carmode.CarModeScreen
@@ -110,6 +115,14 @@ class MainActivity : ComponentActivity() {
         installSplashScreen()
         super.onCreate(savedInstanceState)
         playerController.connect()
+
+        // Apply the persisted per-app language choice (if any) before the
+        // first composition, so the initial UI already renders in the
+        // right language rather than flashing the system default first.
+        lifecycleScope.launch {
+            val languageOption = settingsRepository.settings.first().languageOption
+            AppCompatDelegate.setApplicationLocales(languageOption.toLocaleListCompat())
+        }
 
         setContent {
             val appSettings by settingsRepository.settings.collectAsState(initial = AppSettings())

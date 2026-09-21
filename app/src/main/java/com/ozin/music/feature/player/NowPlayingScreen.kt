@@ -53,6 +53,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.palette.graphics.Palette
@@ -60,6 +61,7 @@ import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import coil.imageLoader
 import coil.request.ImageRequest
+import com.ozin.music.R
 import com.ozin.music.core.data.mediastore.MediaStoreScanner
 import com.ozin.music.core.domain.LrcParser
 import com.ozin.music.core.player.RepeatUiMode
@@ -125,48 +127,64 @@ fun NowPlayingScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.Filled.KeyboardArrowDown, contentDescription = "Collapse", tint = Color.White)
+                Icon(Icons.Filled.KeyboardArrowDown, contentDescription = stringResource(R.string.player_collapse), tint = Color.White)
             }
             Row {
                 IconButton(onClick = { showQueue = true }) {
-                    Icon(Icons.Filled.QueueMusic, contentDescription = "Queue", tint = Color.White)
+                    Icon(Icons.Filled.QueueMusic, contentDescription = stringResource(R.string.player_queue), tint = Color.White)
                 }
                 Box {
                     IconButton(onClick = { showMoreMenu = true }) {
-                        Icon(Icons.Filled.MoreVert, contentDescription = "More options", tint = Color.White)
+                        Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.player_more_options), tint = Color.White)
                     }
                     DropdownMenu(expanded = showMoreMenu, onDismissRequest = { showMoreMenu = false }) {
                         DropdownMenuItem(
-                            text = { Text("Lyrics") },
+                            text = { Text(stringResource(R.string.player_lyrics)) },
                             onClick = { showMoreMenu = false; onOpenLyrics() },
                         )
                         DropdownMenuItem(
-                            text = { Text("Car mode") },
+                            text = { Text(stringResource(R.string.player_car_mode)) },
                             onClick = { showMoreMenu = false; onOpenCarMode() },
                         )
                         Text(
-                            "Playback speed",
+                            stringResource(R.string.player_playback_speed),
                             style = MaterialTheme.typography.labelMedium,
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                         )
                         listOf(0.5f, 0.75f, 1f, 1.25f, 1.5f, 2f).forEach { speed ->
                             DropdownMenuItem(
-                                text = { Text("${speed}x" + if (state.playbackSpeed == speed) " ✓" else "") },
+                                text = {
+                                    Text(
+                                        if (state.playbackSpeed == speed) {
+                                            stringResource(R.string.player_speed_selected_format, speed)
+                                        } else {
+                                            stringResource(R.string.player_speed_format, speed)
+                                        }
+                                    )
+                                },
                                 onClick = { viewModel.setPlaybackSpeed(speed) },
                             )
                         }
                         Text(
-                            "A-B repeat",
+                            stringResource(R.string.player_ab_repeat),
                             style = MaterialTheme.typography.labelMedium,
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                         )
-                        DropdownMenuItem(text = { Text("Set point A") }, onClick = { viewModel.setAbPointA() })
-                        DropdownMenuItem(text = { Text("Set point B") }, onClick = { viewModel.setAbPointB() })
+                        DropdownMenuItem(text = { Text(stringResource(R.string.player_set_point_a)) }, onClick = { viewModel.setAbPointA() })
+                        DropdownMenuItem(text = { Text(stringResource(R.string.player_set_point_b)) }, onClick = { viewModel.setAbPointB() })
                         DropdownMenuItem(
-                            text = { Text(if (state.abRepeat.enabled) "Disable A-B repeat" else "Enable A-B repeat") },
+                            text = {
+                                Text(
+                                    if (state.abRepeat.enabled) {
+                                        stringResource(R.string.player_disable_ab_repeat)
+                                    } else {
+                                        stringResource(R.string.player_enable_ab_repeat)
+                                    }
+                                )
+                            },
                             onClick = { viewModel.setAbRepeatEnabled(!state.abRepeat.enabled) },
                         )
-                        DropdownMenuItem(text = { Text("Clear A-B repeat") }, onClick = { viewModel.clearAbRepeat() })
+                        DropdownMenuItem(text = { Text(stringResource(R.string.player_clear_ab_repeat)) }, onClick = { viewModel.clearAbRepeat() })
                     }
                 }
             }
@@ -174,7 +192,7 @@ fun NowPlayingScreen(
 
         if (song == null) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Nothing playing", color = Color.White)
+                Text(stringResource(R.string.player_nothing_playing), color = Color.White)
             }
             return@Column
         }
@@ -225,7 +243,11 @@ fun NowPlayingScreen(
         }
 
         Text(song.title, style = MaterialTheme.typography.headlineSmall, color = Color.White)
-        Text("${song.artist} • ${song.album}", style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.7f))
+        Text(
+            stringResource(R.string.player_artist_album_format, song.artist, song.album),
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color.White.copy(alpha = 0.7f),
+        )
         RatingStars(
             rating = song.rating,
             onRatingChange = { viewModel.setRating(song.id, it) },
@@ -260,25 +282,25 @@ fun NowPlayingScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = { viewModel.toggleShuffle() }) {
-                Icon(Icons.Filled.Shuffle, contentDescription = "Shuffle", tint = if (state.shuffleEnabled) accentColor else Color.White)
+                Icon(Icons.Filled.Shuffle, contentDescription = stringResource(R.string.player_shuffle), tint = if (state.shuffleEnabled) accentColor else Color.White)
             }
             IconButton(onClick = { viewModel.previous() }) {
-                Icon(Icons.Filled.SkipPrevious, contentDescription = "Previous", tint = Color.White)
+                Icon(Icons.Filled.SkipPrevious, contentDescription = stringResource(R.string.player_previous), tint = Color.White)
             }
             IconButton(onClick = { viewModel.togglePlayPause() }, modifier = Modifier.background(Color.White, RoundedCornerShape(50))) {
                 Icon(
                     imageVector = if (state.isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                    contentDescription = "Play/Pause",
+                    contentDescription = stringResource(R.string.player_play_pause),
                     tint = Color.Black,
                 )
             }
             IconButton(onClick = { viewModel.next() }) {
-                Icon(Icons.Filled.SkipNext, contentDescription = "Next", tint = Color.White)
+                Icon(Icons.Filled.SkipNext, contentDescription = stringResource(R.string.player_next), tint = Color.White)
             }
             IconButton(onClick = { viewModel.cycleRepeat() }) {
                 Icon(
                     imageVector = if (state.repeatMode == RepeatUiMode.ONE) Icons.Filled.RepeatOne else Icons.Filled.Repeat,
-                    contentDescription = "Repeat",
+                    contentDescription = stringResource(R.string.player_repeat),
                     tint = if (state.repeatMode != RepeatUiMode.OFF) accentColor else Color.White,
                 )
             }
@@ -288,12 +310,12 @@ fun NowPlayingScreen(
             IconButton(onClick = { viewModel.toggleFavorite() }) {
                 Icon(
                     imageVector = if (song.isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                    contentDescription = "Favorite",
+                    contentDescription = stringResource(R.string.library_favorite),
                     tint = if (song.isFavorite) accentColor else Color.White,
                 )
             }
             IconButton(onClick = { showAddToPlaylist = true }) {
-                Icon(Icons.Filled.PlaylistAdd, contentDescription = "Add to playlist", tint = Color.White)
+                Icon(Icons.Filled.PlaylistAdd, contentDescription = stringResource(R.string.player_add_to_playlist), tint = Color.White)
             }
         }
     }
@@ -301,7 +323,7 @@ fun NowPlayingScreen(
     if (showQueue) {
         ModalBottomSheet(onDismissRequest = { showQueue = false }) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("Queue", style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.player_queue), style = MaterialTheme.typography.titleMedium)
                 state.queue.forEachIndexed { index, queuedSong ->
                     Row(
                         modifier = Modifier
@@ -320,16 +342,16 @@ fun NowPlayingScreen(
                             onClick = { viewModel.moveInQueue(index, index - 1) },
                             enabled = index > 0,
                         ) {
-                            Icon(Icons.Filled.KeyboardArrowUp, contentDescription = "Move up")
+                            Icon(Icons.Filled.KeyboardArrowUp, contentDescription = stringResource(R.string.player_move_up))
                         }
                         IconButton(
                             onClick = { viewModel.moveInQueue(index, index + 1) },
                             enabled = index < state.queue.size - 1,
                         ) {
-                            Icon(Icons.Filled.KeyboardArrowDown, contentDescription = "Move down")
+                            Icon(Icons.Filled.KeyboardArrowDown, contentDescription = stringResource(R.string.player_move_down))
                         }
                         IconButton(onClick = { viewModel.removeFromQueue(index) }) {
-                            Icon(Icons.Filled.Close, contentDescription = "Remove")
+                            Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.player_remove))
                         }
                     }
                 }
@@ -340,9 +362,9 @@ fun NowPlayingScreen(
     if (showAddToPlaylist) {
         ModalBottomSheet(onDismissRequest = { showAddToPlaylist = false }) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("Add to playlist", style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.player_add_to_playlist), style = MaterialTheme.typography.titleMedium)
                 if (playlists.isEmpty()) {
-                    Text("No playlists yet. Create one from the Lists tab.")
+                    Text(stringResource(R.string.player_no_playlists_yet))
                 }
                 playlists.forEach { playlist ->
                     Text(
