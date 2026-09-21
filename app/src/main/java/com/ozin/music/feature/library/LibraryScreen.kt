@@ -20,7 +20,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.PlaylistAdd
@@ -306,7 +308,7 @@ private fun SongActionSheet(
                     .padding(vertical = 12.dp),
                 verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
             ) {
-                Icon(androidx.compose.material.icons.Icons.Filled.Edit, contentDescription = null)
+                Icon(Icons.Filled.Edit, contentDescription = null)
                 Text("Edit song info", modifier = Modifier.padding(start = 16.dp))
             }
             Row(
@@ -316,7 +318,7 @@ private fun SongActionSheet(
                     .padding(vertical = 12.dp),
                 verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
             ) {
-                Icon(androidx.compose.material.icons.Icons.Filled.Folder, contentDescription = null)
+                Icon(Icons.Filled.Folder, contentDescription = null)
                 Text("File management", modifier = Modifier.padding(start = 16.dp))
             }
 
