@@ -1,11 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Stylized music-note mark, matching res/drawable/default_artwork.xml's
+     design language. Kept within the adaptive-icon center safe zone
+     (roughly x/y 21..87 of the 108x108 viewport). -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Simple stylised music note, safe within the adaptive-icon center zone. -->
-    <path
-        android:pathData="M46,30 L46,66 A11,9 0,1 1,42 60 L42,38 L70,32 L70,58 A10,8 0,1 1,66 53 L66,24 Z"
-        android:fillColor="#7C4DFF" />
+
+    <!-- Stem + flag -->
+    <path android:pathData="M46,28 L46,66 L52,66 L52,38 L66,32 L66,58 L72,58 L72,22 L46,28 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="46"
+                android:startY="22"
+                android:endX="72"
+                android:endY="66"
+                android:startColor="#F4F1FF"
+                android:endColor="#B39DFF" />
+        </aapt:attr>
+    </path>
+
+    <!-- Note heads -->
+    <path android:pathData="M42,66m-11,0a11,9 0,1 1,22 0a11,9 0,1 1,-22 0" android:fillColor="#F4F1FF" />
+    <path android:pathData="M68,58m-10,0a10,8 0,1 1,20 0a10,8 0,1 1,-20 0" android:fillColor="#B39DFF" />
 </vector>

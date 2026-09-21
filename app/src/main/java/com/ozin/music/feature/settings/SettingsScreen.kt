@@ -11,7 +11,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -58,6 +60,7 @@ fun SettingsScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
+            .verticalScroll(rememberScrollState())
             .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
@@ -147,7 +150,9 @@ fun SettingsScreen(
 
         Text(stringResource(R.string.settings_car_bluetooth), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
         Button(onClick = onOpenBluetoothDevices) { Text(stringResource(R.string.settings_bluetooth_device_profiles)) }
-        Button(onClick = onOpenDjMode) { Text(stringResource(R.string.nav_dj_mode)) }
+
+        Text(stringResource(R.string.nav_dj_mode), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
+        Button(onClick = onOpenDjMode) { Text(stringResource(R.string.settings_open_dj_mode)) }
 
         Text(stringResource(R.string.settings_network), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
         Button(onClick = onOpenRemoteServers) { Text(stringResource(R.string.settings_network_servers)) }
@@ -251,6 +256,25 @@ fun SettingsScreen(
         }
 
         Button(onClick = onOpenDebugInfo) { Text(stringResource(R.string.settings_debug_info)) }
+
+        Text(stringResource(R.string.settings_about), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(
+                stringResource(R.string.app_name),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+            )
+            Text(
+                stringResource(R.string.settings_about_version_format, com.ozin.music.BuildConfig.VERSION_NAME),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                stringResource(R.string.settings_about_developer),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
 
