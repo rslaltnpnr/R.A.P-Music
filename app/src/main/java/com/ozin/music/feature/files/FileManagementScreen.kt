@@ -75,8 +75,9 @@ fun FileManagementSheet(onDismiss: () -> Unit, viewModel: FileManagementViewMode
                 singleLine = true,
             )
 
-            if (state.error != null) {
-                Text(state.error, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 8.dp))
+            val errorMessage = state.error
+            if (errorMessage != null) {
+                Text(errorMessage, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 8.dp))
             }
 
             Row(modifier = Modifier.fillMaxWidth().padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {

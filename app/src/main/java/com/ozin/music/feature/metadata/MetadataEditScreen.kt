@@ -83,8 +83,9 @@ fun MetadataEditScreen(onBack: () -> Unit, viewModel: MetadataEditViewModel = hi
             Text("Replace album art")
         }
 
-        if (state.error != null) {
-            Text(state.error, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 12.dp))
+        val errorMessage = state.error
+        if (errorMessage != null) {
+            Text(errorMessage, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 12.dp))
         }
         val path = state.song?.path.orEmpty()
         if (!path.endsWith(".mp3", ignoreCase = true) && path.isNotBlank()) {
