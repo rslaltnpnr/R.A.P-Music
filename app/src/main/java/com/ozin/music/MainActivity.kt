@@ -57,6 +57,8 @@ import com.ozin.music.feature.playlist.PlaylistsScreen
 import com.ozin.music.feature.playlist.SmartPlaylistDetailScreen
 import com.ozin.music.feature.playlist.SmartPlaylistsScreen
 import com.ozin.music.feature.problems.ProblemFilesScreen
+import com.ozin.music.feature.remote.RemoteBrowseScreen
+import com.ozin.music.feature.remote.RemoteServersScreen
 import com.ozin.music.feature.settings.SettingsScreen
 import com.ozin.music.feature.stats.StatsScreen
 import dagger.hilt.android.AndroidEntryPoint
@@ -81,10 +83,13 @@ object Routes {
     const val SMART_PLAYLIST_DETAIL = "smart_playlist/{smartPlaylistId}"
     const val BLUETOOTH_DEVICES = "bluetooth_devices"
     const val CAR_MODE = "car_mode"
+    const val REMOTE_SERVERS = "remote_servers"
+    const val REMOTE_BROWSE = "remote_browse/{serverId}"
     fun playlistDetail(playlistId: Long) = "playlist/$playlistId"
     fun metadataEdit(songId: Long) = "metadata_edit/$songId"
     fun fileManagement(songId: Long) = "file_management/$songId"
     fun smartPlaylistDetail(smartPlaylistId: Long) = "smart_playlist/$smartPlaylistId"
+    fun remoteBrowse(serverId: Long) = "remote_browse/$serverId"
 }
 
 @AndroidEntryPoint
@@ -165,9 +170,25 @@ private fun OzinApp() {
                         onOpenDuplicates = { navController.navigate(Routes.DUPLICATES) },
                         onOpenStats = { navController.navigate(Routes.STATS) },
                         onOpenBluetoothDevices = { navController.navigate(Routes.BLUETOOTH_DEVICES) },
+                        onOpenRemoteServers = { navController.navigate(Routes.REMOTE_SERVERS) },
                     )
                 }
                 composable(Routes.BLUETOOTH_DEVICES) { BluetoothDevicesScreen() }
+                composable(Routes.REMOTE_SERVERS) {
+                    RemoteServersScreen(
+                        onBack = { navController.popBackStack() },
+                        onOpenServer = { id -> navController.navigate(Routes.remoteBrowse(id)) },
+                    )
+                }
+                composable(
+                    route = Routes.REMOTE_BROWSE,
+                    arguments = listOf(navArgument("serverId") { type = NavType.LongType }),
+                ) {
+                    RemoteBrowseScreen(
+                        onBack = { navController.popBackStack() },
+                        onSongClick = { navController.navigate(Routes.NOW_PLAYING) },
+                    )
+                }
                 composable(Routes.CAR_MODE) { CarModeScreen(onExit = { navController.popBackStack() }) }
                 composable(Routes.STATS) { StatsScreen(onBack = { navController.popBackStack() }) }
                 composable(Routes.SMART_PLAYLISTS) {

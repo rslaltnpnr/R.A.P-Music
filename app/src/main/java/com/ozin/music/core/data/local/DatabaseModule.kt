@@ -38,4 +38,7 @@ object DatabaseModule {
     @Provides
     fun provideBluetoothDeviceProfileDao(database: OzinDatabase): BluetoothDeviceProfileDao =
         database.bluetoothDeviceProfileDao()
+
+    @Provides
+    fun provideRemoteServerDao(database: OzinDatabase): RemoteServerDao = database.remoteServerDao()
 }
