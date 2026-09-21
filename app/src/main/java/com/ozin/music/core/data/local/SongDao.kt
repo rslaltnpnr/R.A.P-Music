@@ -62,6 +62,9 @@ interface SongDao {
     @Query("UPDATE songs SET rating = :rating WHERE id = :id")
     suspend fun setRating(id: Long, rating: Int)
 
+    @Query("UPDATE songs SET moodTags = :moodTags WHERE id = :id")
+    suspend fun setMoodTags(id: Long, moodTags: String)
+
     @Delete
     suspend fun delete(song: Song)
 }

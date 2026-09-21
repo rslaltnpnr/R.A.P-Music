@@ -66,6 +66,8 @@ class FakePlaylistDao : PlaylistDao {
                 .mapNotNull { songsById[it.songId] }
         ).asStateFlow()
 
+    override fun observeAllCrossRefs() = MutableStateFlow(crossRefs.toList()).asStateFlow()
+
     private fun emit() {
         _playlistsFlow.value = playlists.toList()
     }

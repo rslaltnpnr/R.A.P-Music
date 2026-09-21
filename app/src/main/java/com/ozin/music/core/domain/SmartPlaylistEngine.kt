@@ -30,6 +30,7 @@ object SmartPlaylistEngine {
         }
         SmartRuleField.DATE_ADDED -> matchesRelativeDate(song.dateAdded, rule, nowMs)
         SmartRuleField.DATE_PLAYED -> matchesRelativeDate(song.lastPlayedAt, rule, nowMs)
+        SmartRuleField.MOOD_TAG -> matchesString(song.moodTags, rule)
     }
 
     private fun matchesString(actual: String, rule: SmartPlaylistRule): Boolean = when (rule.operator) {
