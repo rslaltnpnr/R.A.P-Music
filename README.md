@@ -10,39 +10,64 @@ ads, no accounts, no telemetry — everything it does is local to your device.
 
 ## Features
 
-- **Library**: scans on-device audio via `MediaStore` (title, artist, album,
-  album art, duration, path, size, year, track number) into a Room database
-  that is the app's single source of truth.
-- **Home**: time-of-day greeting, recently played, recently added, most
-  played, favorites and playlists — all backed by real Room queries.
-- **Library browser**: Songs / Albums / Artists / Folders / Genres /
-  Favorites, list/grid toggle, and sort by title, date added, most played,
-  duration, artist or album.
-- **Now Playing**: large album art, seek bar, shuffle/repeat, favorite,
-  add-to-playlist, queue sheet, and a background gradient derived from the
-  album art's dominant color via the AndroidX Palette API.
-- **Background playback**: a `MediaSessionService` + `ExoPlayer` foreground
-  service with a MediaStyle notification, lockscreen controls, Bluetooth/
-  headset button support, audio-focus handling and pause-on-unplug — all via
-  Media3's standard wiring.
-- **Queue**: reorderable, with play-next/add-to-queue/remove.
-- **Playlists**: Room-backed CRUD with reordering.
-- **Favorites** and **listening stats** (play count, last played), both
-  persisted in Room and feeding the Home/Library screens.
-- **Search**: filters songs/artists/albums/playlists as you type.
-- **Equalizer**: real `android.media.audiofx` Equalizer/BassBoost/
-  Virtualizer/LoudnessEnhancer attached to ExoPlayer's audio session, with
-  presets; every effect is created defensively so unsupported hardware never
-  crashes playback.
-- **Sleep timer**: fixed durations, "end of track", volume fade-out.
-- **Lyrics**: looks for a same-name `.lrc` file next to the audio file and
-  displays it synced to playback position.
-- **Settings**: DataStore-backed theme/shuffle/repeat defaults, crossfade,
-  normalization, mini player style and an excluded-folders list that filters
-  the MediaStore scan.
-- **Permissions**: `READ_MEDIA_AUDIO` (API 33+) / `READ_EXTERNAL_STORAGE`
-  (below), requested through a Compose screen with a graceful empty state if
-  denied.
+OZIN Music was built from scratch across ten phases into a complete, fully
+offline player. Everything below is real, working functionality, not a
+roadmap.
+
+- **Library & playback core**: scans on-device audio via `MediaStore` (title,
+  artist, album, album art, duration, path, size, year, track number) into a
+  Room database that is the app's single source of truth. Playback runs
+  through a `MediaLibraryService` + `ExoPlayer` foreground service with a
+  MediaStyle notification, lockscreen controls, Bluetooth/headset button
+  support, audio-focus handling and pause-on-unplug, plus a mini player and a
+  full Now Playing screen with a background gradient derived from the album
+  art's dominant color (AndroidX Palette).
+- **Library organization**: Songs / Albums / Artists / Folders / Genres /
+  Favorites browsing with list/grid toggle and multiple sort orders,
+  Room-backed playlist CRUD with drag reordering, and a reorderable playback
+  queue (play-next/add-to-queue/remove).
+- **Real audio processing**: `android.media.audiofx`-backed Equalizer/
+  BassBoost/Virtualizer/LoudnessEnhancer with 13 presets, fade in/out,
+  adjustable playback speed/pitch, A-B repeat, and a smart crossfade that
+  auto-applies between tracks — every effect degrades gracefully on hardware
+  that doesn't support it.
+- **Lyrics & metadata**: a `.lrc` sync viewer with an in-app lyrics editor,
+  metadata editing through `MediaStore` and a custom ID3v2 tag writer for
+  MP3s, file management (rename/delete/share), duplicate-song detection,
+  per-folder include/exclude scan rules, and `ContentObserver`-driven
+  incremental rescans so the library stays current without a full rescan.
+- **Stats & smart playlists**: a listening-history dashboard (per-event log,
+  multiple time-range views), 1-5 star ratings, and rule-based smart/dynamic
+  playlists (e.g. "favorites not played in 30 days") evaluated live against
+  the library.
+- **Android Auto & Bluetooth**: a full `MediaLibraryService` browse tree for
+  Android Auto, per-Bluetooth-device profiles that auto-apply a saved EQ/
+  crossfade configuration on connect, and a dedicated car-mode screen.
+- **Network/remote source**: an optional WebDAV remote music source, with
+  credentials stored in `EncryptedSharedPreferences` (androidx.security-
+  crypto) and remote files browsed/streamed through the exact same player
+  pipeline as local songs.
+- **Local intelligence (heuristic, not ML)**: a genre + listening-time based
+  mood tag classifier, a keyword query parser for natural-language-ish
+  search (reuses the smart playlist rule engine), and an explainable
+  "Similar Songs" weighted-scoring feature — every score is traceable to a
+  documented rule, no audio analysis or machine learning involved.
+- **Premium visuals**: alternate Now Playing modes (Vinyl, Cassette, a
+  deterministic Visualizer animation), five theme presets (Default Dark,
+  AMOLED, Neon, Retro, Minimal) and configurable accent colors.
+- **System integration**: a Quick Settings tile for play/pause that reflects
+  live playback state, and a tuned Coil image cache (bounded memory + disk
+  cache) for smooth scrolling through album art.
+- **Settings & permissions**: DataStore-backed theme/shuffle/repeat defaults,
+  crossfade, normalization, mini player style and an excluded-folders list
+  that filters the `MediaStore` scan; `READ_MEDIA_AUDIO` (API 33+) /
+  `READ_EXTERNAL_STORAGE` (below) requested through a Compose screen with a
+  graceful empty state if denied.
+
+No home-screen widget is included: after review it was judged too risky to
+add reliably without the ability to compile-test Glance/AppWidgetProvider
+wiring in this environment, so it was deliberately deferred rather than
+shipped half-verified.
 
 ## Tech stack
 

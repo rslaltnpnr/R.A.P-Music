@@ -89,11 +89,11 @@ fun StatsScreen(onBack: () -> Unit, viewModel: StatsViewModel = hiltViewModel())
                 item { EmptyRow() }
             }
             item { SectionHeader("En çok dinlenen sanatçılar") }
-            items(summary.topArtists) { NamedTotalRow(it) }
+            items(summary.topArtists, key = { "artist_${it.name}" }) { NamedTotalRow(it) }
             item { SectionHeader("En çok dinlenen albümler") }
-            items(summary.topAlbums) { NamedTotalRow(it) }
+            items(summary.topAlbums, key = { "album_${it.name}" }) { NamedTotalRow(it) }
             item { SectionHeader("En çok dinlenen türler") }
-            items(summary.topGenres) { NamedTotalRow(it) }
+            items(summary.topGenres, key = { "genre_${it.name}" }) { NamedTotalRow(it) }
         }
     }
 }

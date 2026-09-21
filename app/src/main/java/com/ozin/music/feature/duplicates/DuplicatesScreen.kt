@@ -45,7 +45,7 @@ fun DuplicatesScreen(viewModel: DuplicatesViewModel = hiltViewModel()) {
         }
 
         LazyColumn {
-            items(state.groups) { group ->
+            items(state.groups, key = { group -> group.songs.joinToString("|") { it.id.toString() } }) { group ->
                 Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
                     Text(group.songs.first().title, style = MaterialTheme.typography.titleSmall)
                     group.songs.forEach { song ->

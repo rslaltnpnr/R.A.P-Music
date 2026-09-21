@@ -85,7 +85,7 @@ fun LyricsScreen(onBack: () -> Unit, viewModel: LyricsViewModel = hiltViewModel(
                 listState.animateScrollToItem((currentIndex - 2).coerceAtLeast(0))
             }
             LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
-                items(state.lines) { line ->
+                items(state.lines, key = { it.timeMs }) { line ->
                     val isCurrent = line == state.currentLine
                     Text(
                         text = line.text.ifBlank { "…" },
@@ -104,7 +104,7 @@ fun LyricsScreen(onBack: () -> Unit, viewModel: LyricsViewModel = hiltViewModel(
                 modifier = Modifier.padding(vertical = 8.dp),
             )
             LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(state.rawText.lines()) { line ->
+                items(state.rawText.lines(), key = { it.hashCode() }) { line ->
                     Text(line, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(vertical = 4.dp))
                 }
             }
