@@ -4,8 +4,11 @@ import android.content.pm.PackageManager
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.session.MediaLibraryService
+import androidx.media3.session.MediaLibraryService.MediaLibrarySession
 import androidx.media3.session.MediaSession
-import androidx.media3.session.MediaSessionService
+import com.ozin.music.core.data.repository.PlaylistRepository
+import com.ozin.music.core.data.repository.SongRepository
 import com.ozin.music.core.settings.SettingsRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -15,13 +18,20 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
- * Foreground MediaSessionService hosting the single app-wide ExoPlayer
+ * Foreground [MediaLibraryService] hosting the single app-wide ExoPlayer
  * instance. Media3 wires audio-focus handling, becoming-noisy handling,
  * Bluetooth/headset button support and the lockscreen/notification MediaStyle
- * UI automatically once the session + player are attached.
+ * UI automatically once the session + player are attached. Extends
+ * `MediaLibraryService` (rather than plain `MediaSessionService`) so the same
+ * session/player also exposes a browsable tree to Android Auto via
+ * [OzinLibrarySessionCallback] — chosen over a second, separate service
+ * because Media3 supports only one active session per player, so a second
+ * service would need its own session on the same player, which is unsafe to
+ * do blind; a single session covering both phone and Auto avoids that risk
+ * entirely and is Media3's own documented pattern (see the UAMP sample app).
  */
 @AndroidEntryPoint
-class PlaybackService : MediaSessionService() {
+class PlaybackService : MediaLibraryService() {
 
     @Inject lateinit var exoPlayer: ExoPlayer
     @Inject lateinit var effectsChain: EffectsChain
@@ -29,8 +39,10 @@ class PlaybackService : MediaSessionService() {
     @Inject lateinit var crossfadeController: CrossfadeController
     @Inject lateinit var playbackFader: PlaybackFader
     @Inject lateinit var settingsRepository: SettingsRepository
+    @Inject lateinit var songRepository: SongRepository
+    @Inject lateinit var playlistRepository: PlaylistRepository
 
-    private var mediaSession: MediaSession? = null
+    private var mediaSession: MediaLibrarySession? = null
     private val serviceScope = CoroutineScope(Dispatchers.Main.immediate)
     private var settingsJob: Job? = null
 
@@ -51,9 +63,11 @@ class PlaybackService : MediaSessionService() {
         crossfadeController.attach(exoPlayer)
         playbackFader.attach(exoPlayer)
 
-        mediaSession = MediaSession.Builder(this, exoPlayer)
-            .setCallback(OzinSessionCallback())
-            .build()
+        mediaSession = MediaLibrarySession.Builder(
+            this,
+            exoPlayer,
+            OzinLibrarySessionCallback(songRepository, playlistRepository),
+        ).build()
 
         if (packageManager.hasSystemFeature(PackageManager.FEATURE_AUDIO_OUTPUT).not()) {
             // Devices with no audio output still shouldn't crash the service.
@@ -77,7 +91,7 @@ class PlaybackService : MediaSessionService() {
         }
     }
 
-    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = mediaSession
+    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession? = mediaSession
 
     override fun onTaskRemoved(rootIntent: android.content.Intent?) {
         val player = mediaSession?.player

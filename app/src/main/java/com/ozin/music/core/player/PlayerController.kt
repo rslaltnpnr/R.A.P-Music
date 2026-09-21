@@ -155,6 +155,23 @@ class PlayerController @Inject constructor(
 
     fun currentAudioSessionId(): Int = controller?.let { 0 } ?: 0
 
+    /** True once a real MediaController is connected and holds a non-empty
+     * queue, e.g. from a previous session restored by the media session. */
+    fun hasQueue(): Boolean = (controller?.mediaItemCount ?: 0) > 0
+
+    /**
+     * Best-effort auto-resume for a Bluetooth device profile: only starts
+     * playback when the player is already connected with an existing queue
+     * (never builds a new one), so it is a real no-op rather than a stub when
+     * nothing is queued.
+     */
+    fun resumeIfQueued() {
+        val ctrl = controller ?: return
+        if (ctrl.mediaItemCount > 0 && !ctrl.isPlaying) {
+            ctrl.play()
+        }
+    }
+
     /** Persists a 0-5 star rating for [songId] and reflects it immediately if
      * it is the song currently playing. */
     fun setRating(songId: Long, rating: Int) {

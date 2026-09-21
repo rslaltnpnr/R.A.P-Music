@@ -15,6 +15,13 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
+    <!-- Bluetooth device profiles: legacy BLUETOOTH is a normal permission
+         pre-API31; BLUETOOTH_CONNECT is a runtime permission on API31+, only
+         needed to read a paired device's display name (MAC-address-only
+         lookups work without it). -->
+    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+
     <application
         android:name=".OzinMusicApp"
         android:allowBackup="true"
@@ -37,14 +44,32 @@
             </intent-filter>
         </activity>
 
+        <!-- Converted from MediaSessionService to MediaLibraryService (phase
+             6) so the same single session/player also serves Android Auto's
+             browse tree; see PlaybackService's class doc for why this was
+             chosen over a second service. -->
         <service
             android:name=".core.player.PlaybackService"
             android:exported="true"
             android:foregroundServiceType="mediaPlayback">
             <intent-filter>
+                <action android:name="androidx.media3.session.MediaLibraryService" />
                 <action android:name="androidx.media3.session.MediaSessionService" />
+                <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>
         </service>
+
+        <receiver
+            android:name=".core.bluetooth.BluetoothProfileReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.bluetooth.device.action.ACL_CONNECTED" />
+            </intent-filter>
+        </receiver>
+
+        <meta-data
+            android:name="com.google.android.gms.car.application"
+            android:resource="@xml/automotive_app_desc" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

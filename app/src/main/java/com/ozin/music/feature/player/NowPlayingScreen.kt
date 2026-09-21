@@ -68,7 +68,12 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NowPlayingScreen(onBack: () -> Unit, onOpenLyrics: () -> Unit = {}, viewModel: PlayerViewModel = hiltViewModel()) {
+fun NowPlayingScreen(
+    onBack: () -> Unit,
+    onOpenLyrics: () -> Unit = {},
+    onOpenCarMode: () -> Unit = {},
+    viewModel: PlayerViewModel = hiltViewModel(),
+) {
     val state by viewModel.playbackState.collectAsState()
     val lyrics by viewModel.lyrics.collectAsState()
     val playlists by viewModel.playlists.collectAsState()
@@ -132,6 +137,10 @@ fun NowPlayingScreen(onBack: () -> Unit, onOpenLyrics: () -> Unit = {}, viewMode
                         DropdownMenuItem(
                             text = { Text("Lyrics") },
                             onClick = { showMoreMenu = false; onOpenLyrics() },
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Car mode") },
+                            onClick = { showMoreMenu = false; onOpenCarMode() },
                         )
                         Text(
                             "Playback speed",

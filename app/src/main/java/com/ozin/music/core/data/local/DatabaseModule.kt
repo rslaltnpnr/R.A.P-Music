@@ -34,4 +34,8 @@ object DatabaseModule {
 
     @Provides
     fun provideSmartPlaylistDao(database: OzinDatabase): SmartPlaylistDao = database.smartPlaylistDao()
+
+    @Provides
+    fun provideBluetoothDeviceProfileDao(database: OzinDatabase): BluetoothDeviceProfileDao =
+        database.bluetoothDeviceProfileDao()
 }
