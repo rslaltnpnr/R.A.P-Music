@@ -137,4 +137,40 @@
     <string name="settings_language_system">System default</string>
     <string name="settings_language_english">English</string>
     <string name="settings_language_turkish">Türkçe</string>
+
+    <!-- DJ Mode -->
+    <string name="dj_mode_title">DJ Mode</string>
+    <string name="dj_basic">Basic</string>
+    <string name="dj_pro">Pro</string>
+    <string name="dj_automix">Automix</string>
+    <string name="dj_record">Record</string>
+    <string name="dj_close">Close</string>
+    <string name="dj_ok">OK</string>
+    <string name="dj_cancel">Cancel</string>
+    <string name="dj_continue">Continue</string>
+    <string name="dj_sync">Sync</string>
+    <string name="dj_bpm_unknown">BPM unknown for one or both decks — Sync needs a known BPM (from track tags) to work.</string>
+    <string name="dj_record_consent_explainer">Android will show a screen-recording style permission dialog even though only this app\'s audio is captured. This is required by the system to record playback audio.</string>
+    <string name="dj_no_track_loaded">No track loaded</string>
+    <string name="dj_load_track">Load track</string>
+    <string name="dj_play">Play</string>
+    <string name="dj_cue">Cue</string>
+    <string name="dj_hot_cues">Hot cues</string>
+    <string name="dj_loop_in">Loop In</string>
+    <string name="dj_loop_out">Loop Out</string>
+    <string name="dj_loop_exit">Exit Loop</string>
+    <string name="dj_reloop">Reloop</string>
+    <string name="dj_auto_loop_4">4 beat</string>
+    <string name="dj_mixer">Mixer</string>
+    <string name="dj_crossfader">Crossfader</string>
+    <string name="dj_gain">Gain</string>
+    <string name="dj_high">High</string>
+    <string name="dj_mid">Mid</string>
+    <string name="dj_low">Low</string>
+    <string name="dj_filter">Filter</string>
+    <string name="dj_search_library">Search library</string>
+    <string name="dj_automix_enable">Enable Automix</string>
+    <string name="dj_automix_prefer_favorites">Prefer favorites</string>
+    <string name="dj_automix_transition">Transition length</string>
+    <string name="nav_dj_mode">DJ Mode</string>
 </resources>

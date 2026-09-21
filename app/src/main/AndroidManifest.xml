@@ -22,6 +22,11 @@
     <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
 
+    <!-- DJ Mode recording: AudioPlaybackCaptureConfiguration (API 29+) needs
+         RECORD_AUDIO even though it only captures this app's own USAGE_MEDIA
+         output, not the microphone. Feature is hidden/disabled below API 29. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
     <application
         android:name=".OzinMusicApp"
         android:allowBackup="true"
