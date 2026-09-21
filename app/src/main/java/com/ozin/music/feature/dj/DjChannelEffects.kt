@@ -40,7 +40,7 @@ class DjChannelEffects {
     var midGainMb = 0; private set
     var highGainMb = 0; private set
     var filterAmount = 0f; private set // -1 (low-pass character) .. 1 (high-pass character), 0 = flat
-    var reverbPreset: Int = PresetReverb.PRESET_NONE; private set
+    var reverbPreset: Int = PresetReverb.PRESET_NONE.toInt(); private set
 
     fun attach(audioSessionId: Int) {
         if (audioSessionId == sessionId && equalizer != null) return
@@ -113,7 +113,7 @@ class DjChannelEffects {
         try {
             reverb?.let {
                 it.preset = preset.toShort()
-                it.enabled = preset != PresetReverb.PRESET_NONE
+                it.enabled = preset != PresetReverb.PRESET_NONE.toInt()
             }
         } catch (e: Exception) {
             Log.w(TAG, "Failed to set DJ reverb preset", e)

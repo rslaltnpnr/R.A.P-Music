@@ -2,7 +2,6 @@ package com.ozin.music.feature.dj
 
 import android.content.ContentUris
 import android.content.Context
-import android.media.MediaMetadataRetriever
 import android.provider.MediaStore
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackParameters
@@ -101,22 +100,11 @@ class DjDeck(
         )
     }
 
-    private fun readBpmTag(path: String): Float? = try {
-        MediaMetadataRetriever().use { retriever ->
-            retriever.setDataSource(path)
-            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BEATS_PER_MINUTE)?.toFloatOrNull()
-        }
-    } catch (_: Exception) {
-        null
-    }
-
-    private inline fun MediaMetadataRetriever.use(block: (MediaMetadataRetriever) -> Float?): Float? {
-        return try {
-            block(this)
-        } finally {
-            release()
-        }
-    }
+    // Android's public MediaMetadataRetriever API has no BPM metadata key
+    // (ID3's TBPM frame isn't exposed), so BPM is honestly always unknown
+    // here rather than faked — Sync/Automix already degrade gracefully when
+    // both/either deck's BPM is null.
+    private fun readBpmTag(path: String): Float? = null
 
     fun setWaveform(amplitudes: FloatArray) {
         _state.value = _state.value.copy(waveform = amplitudes)
