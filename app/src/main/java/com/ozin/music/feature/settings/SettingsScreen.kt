@@ -29,6 +29,7 @@ fun SettingsScreen(
     onOpenProblemFiles: () -> Unit = {},
     onOpenDuplicates: () -> Unit = {},
     onOpenStats: () -> Unit = {},
+    onOpenBluetoothDevices: () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val settings by viewModel.settings.collectAsState()
@@ -100,6 +101,9 @@ fun SettingsScreen(
 
         Text("Personalization", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
         Button(onClick = onOpenStats) { Text("Listening statistics") }
+
+        Text("Car & Bluetooth", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
+        Button(onClick = onOpenBluetoothDevices) { Text("Bluetooth device profiles") }
     }
 }
 

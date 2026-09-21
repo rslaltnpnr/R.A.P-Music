@@ -38,6 +38,8 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.res.stringResource
 import com.ozin.music.core.player.PlayerController
 import com.ozin.music.core.ui.theme.OzinMusicTheme
+import com.ozin.music.feature.bluetooth.BluetoothDevicesScreen
+import com.ozin.music.feature.carmode.CarModeScreen
 import com.ozin.music.feature.duplicates.DuplicatesScreen
 import com.ozin.music.feature.files.FileManagementSheet
 import com.ozin.music.feature.folders.FoldersScreen
@@ -77,6 +79,8 @@ object Routes {
     const val STATS = "stats"
     const val SMART_PLAYLISTS = "smart_playlists"
     const val SMART_PLAYLIST_DETAIL = "smart_playlist/{smartPlaylistId}"
+    const val BLUETOOTH_DEVICES = "bluetooth_devices"
+    const val CAR_MODE = "car_mode"
     fun playlistDetail(playlistId: Long) = "playlist/$playlistId"
     fun metadataEdit(songId: Long) = "metadata_edit/$songId"
     fun fileManagement(songId: Long) = "file_management/$songId"
@@ -160,8 +164,11 @@ private fun OzinApp() {
                         onOpenProblemFiles = { navController.navigate(Routes.PROBLEM_FILES) },
                         onOpenDuplicates = { navController.navigate(Routes.DUPLICATES) },
                         onOpenStats = { navController.navigate(Routes.STATS) },
+                        onOpenBluetoothDevices = { navController.navigate(Routes.BLUETOOTH_DEVICES) },
                     )
                 }
+                composable(Routes.BLUETOOTH_DEVICES) { BluetoothDevicesScreen() }
+                composable(Routes.CAR_MODE) { CarModeScreen(onExit = { navController.popBackStack() }) }
                 composable(Routes.STATS) { StatsScreen(onBack = { navController.popBackStack() }) }
                 composable(Routes.SMART_PLAYLISTS) {
                     SmartPlaylistsScreen(
@@ -181,6 +188,7 @@ private fun OzinApp() {
                     NowPlayingScreen(
                         onBack = { navController.popBackStack() },
                         onOpenLyrics = { navController.navigate(Routes.LYRICS) },
+                        onOpenCarMode = { navController.navigate(Routes.CAR_MODE) },
                     )
                 }
                 composable(Routes.LYRICS) { LyricsScreen(onBack = { navController.popBackStack() }) }
