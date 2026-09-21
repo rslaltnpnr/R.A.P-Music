@@ -48,7 +48,7 @@ object AutomixSelector {
             if (currentBpm != null && candidateBpm != null && currentBpm > 0f) {
                 val diff = kotlin.math.abs(candidateBpm - currentBpm)
                 // Closer BPM scores higher; only ever applied when both are known.
-                s += (10.0 - diff.coerceAtMost(10.0))
+                s += (10.0 - diff.coerceAtMost(10f).toDouble())
             }
             return s
         }
