@@ -47,6 +47,14 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch { settingsRepository.setMiniPlayerCompact(enabled) }
     }
 
+    fun toggleSmartCrossfade(enabled: Boolean) {
+        viewModelScope.launch { settingsRepository.setSmartCrossfadeEnabled(enabled) }
+    }
+
+    fun toggleFadeInOut(enabled: Boolean) {
+        viewModelScope.launch { settingsRepository.setFadeInOutEnabled(enabled) }
+    }
+
     fun addExcludedFolder(path: String) {
         if (path.isBlank()) return
         viewModelScope.launch {

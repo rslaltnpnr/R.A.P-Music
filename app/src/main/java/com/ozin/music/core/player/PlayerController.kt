@@ -4,12 +4,16 @@ import android.content.ComponentName
 import android.content.Context
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.MoreExecutors
 import com.ozin.music.core.data.model.Song
 import com.ozin.music.core.data.repository.SongRepository
+import com.ozin.music.core.domain.AbRepeat
+import com.ozin.music.core.domain.AbRepeatState
+import com.ozin.music.core.domain.PlaybackSpeed
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -32,6 +36,8 @@ data class PlaybackUiState(
     val queue: List<Song> = emptyList(),
     val currentIndex: Int = -1,
     val isConnected: Boolean = false,
+    val playbackSpeed: Float = 1f,
+    val abRepeat: AbRepeatState = AbRepeatState(),
 )
 
 /**
@@ -146,6 +152,43 @@ class PlayerController @Inject constructor(
 
     fun currentAudioSessionId(): Int = controller?.let { 0 } ?: 0
 
+    /** Real ExoPlayer speed/pitch control, clamped to a sane, testable range. */
+    fun setPlaybackSpeed(speed: Float) {
+        val ctrl = controller ?: return
+        val clamped = PlaybackSpeed.clamp(speed)
+        ctrl.playbackParameters = PlaybackParameters(clamped, clamped)
+        _state.value = _state.value.copy(playbackSpeed = clamped)
+    }
+
+    fun setAbPointA() {
+        val ctrl = controller ?: return
+        val current = _state.value.abRepeat
+        _state.value = _state.value.copy(abRepeat = current.copy(pointAMs = ctrl.currentPosition))
+    }
+
+    fun setAbPointB() {
+        val ctrl = controller ?: return
+        val current = _state.value.abRepeat
+        _state.value = _state.value.copy(abRepeat = current.copy(pointBMs = ctrl.currentPosition))
+    }
+
+    fun setAbRepeatEnabled(enabled: Boolean) {
+        _state.value = _state.value.copy(abRepeat = _state.value.abRepeat.copy(enabled = enabled))
+    }
+
+    fun clearAbRepeat() {
+        _state.value = _state.value.copy(abRepeat = AbRepeatState())
+    }
+
+    /** Called on every position tick: loops back to point A once point B is
+     * reached while a valid A-B repeat window is enabled. */
+    private fun checkAbRepeat(positionMs: Long) {
+        val abState = _state.value.abRepeat
+        if (AbRepeat.shouldLoop(abState, positionMs)) {
+            seekTo(abState.pointAMs ?: 0L)
+        }
+    }
+
     /** Exposes the underlying Player (the MediaController itself implements
      * androidx.media3.common.Player) for features that need direct Player
      * access, such as the sleep timer's volume fade. */
@@ -170,6 +213,7 @@ class PlayerController @Inject constructor(
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            _state.value = _state.value.copy(abRepeat = AbRepeatState())
             syncFromPlayer()
         }
 
@@ -221,6 +265,8 @@ class PlayerController @Inject constructor(
 
     fun tickPosition() {
         val ctrl = controller ?: return
-        _state.value = _state.value.copy(positionMs = ctrl.currentPosition.coerceAtLeast(0))
+        val position = ctrl.currentPosition.coerceAtLeast(0)
+        _state.value = _state.value.copy(positionMs = position)
+        checkAbRepeat(position)
     }
 }

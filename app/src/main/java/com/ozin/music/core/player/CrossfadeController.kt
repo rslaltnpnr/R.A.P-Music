@@ -1,6 +1,7 @@
 package com.ozin.music.core.player
 
 import androidx.media3.common.Player
+import com.ozin.music.core.domain.SmartCrossfade
 import com.ozin.music.core.settings.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -42,11 +43,26 @@ class CrossfadeController @Inject constructor(
     private suspend fun tick() {
         val p = player ?: return
         val settings = settingsRepository.settings.first()
-        if (!settings.crossfadeEnabled || !p.isPlaying) {
+        val nextIndex = p.currentMediaItemIndex + 1
+        val currentAlbum = p.currentMediaItem?.mediaMetadata?.albumTitle?.toString()
+        val nextAlbum = if (nextIndex < p.mediaItemCount) {
+            p.getMediaItemAt(nextIndex).mediaMetadata.albumTitle?.toString()
+        } else null
+        val shouldCrossfade = SmartCrossfade.shouldCrossfade(
+            crossfadeEnabled = settings.crossfadeEnabled,
+            smartCrossfadeEnabled = settings.smartCrossfadeEnabled,
+            currentAlbum = currentAlbum,
+            nextAlbum = nextAlbum,
+        )
+        if (!shouldCrossfade || !p.isPlaying) {
             if (p.volume != 1f) runCatching { p.volume = 1f }
             return
         }
         val windowMs = settings.crossfadeSeconds * 1000L
+        if (windowMs <= 0) {
+            if (p.volume != 1f) runCatching { p.volume = 1f }
+            return
+        }
         val remaining = p.duration - p.currentPosition
         if (p.duration <= 0 || remaining < 0) return
         if (remaining in 0..windowMs) {
