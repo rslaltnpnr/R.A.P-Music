@@ -8,6 +8,8 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.ozin.music.core.domain.EqPresetId
+import com.ozin.music.core.ui.theme.AccentColorOption
+import com.ozin.music.core.ui.theme.ThemePreset
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -17,6 +19,10 @@ import javax.inject.Singleton
 private val Context.dataStore by preferencesDataStore(name = "ozin_settings")
 
 enum class RepeatMode { OFF, ALL, ONE }
+
+/** Alternate Now Playing visual modes selectable alongside the original
+ * default view (Phase 9). */
+enum class NowPlayingVisualMode { DEFAULT, VINYL, CASSETTE, VISUALIZER }
 
 data class AppSettings(
     val excludedFolders: Set<String> = emptySet(),
@@ -37,6 +43,10 @@ data class AppSettings(
     val virtualizerStrength: Int = 0,
     val loudnessGainMb: Int = 0,
     val lyricsOffsetMs: Int = 0,
+    // Personalization (Phase 9)
+    val themePreset: ThemePreset = ThemePreset.DEFAULT_DARK,
+    val accentColorOption: AccentColorOption = AccentColorOption.PURPLE,
+    val nowPlayingVisualMode: NowPlayingVisualMode = NowPlayingVisualMode.DEFAULT,
 )
 
 @Singleton
@@ -61,6 +71,9 @@ class SettingsRepository @Inject constructor(
         val VIRTUALIZER_STRENGTH = intPreferencesKey("virtualizer_strength")
         val LOUDNESS_GAIN_MB = intPreferencesKey("loudness_gain_mb")
         val LYRICS_OFFSET_MS = intPreferencesKey("lyrics_offset_ms")
+        val THEME_PRESET = stringPreferencesKey("theme_preset")
+        val ACCENT_COLOR = stringPreferencesKey("accent_color")
+        val NOW_PLAYING_VISUAL_MODE = stringPreferencesKey("now_playing_visual_mode")
     }
 
     val settings: Flow<AppSettings> = context.dataStore.data.map { prefs ->
@@ -87,6 +100,17 @@ class SettingsRepository @Inject constructor(
             virtualizerStrength = prefs[Keys.VIRTUALIZER_STRENGTH] ?: 0,
             loudnessGainMb = prefs[Keys.LOUDNESS_GAIN_MB] ?: 0,
             lyricsOffsetMs = prefs[Keys.LYRICS_OFFSET_MS] ?: 0,
+            themePreset = runCatching {
+                ThemePreset.valueOf(prefs[Keys.THEME_PRESET] ?: ThemePreset.DEFAULT_DARK.name)
+            }.getOrDefault(ThemePreset.DEFAULT_DARK),
+            accentColorOption = runCatching {
+                AccentColorOption.valueOf(prefs[Keys.ACCENT_COLOR] ?: AccentColorOption.PURPLE.name)
+            }.getOrDefault(AccentColorOption.PURPLE),
+            nowPlayingVisualMode = runCatching {
+                NowPlayingVisualMode.valueOf(
+                    prefs[Keys.NOW_PLAYING_VISUAL_MODE] ?: NowPlayingVisualMode.DEFAULT.name
+                )
+            }.getOrDefault(NowPlayingVisualMode.DEFAULT),
         )
     }
 
@@ -167,5 +191,17 @@ class SettingsRepository @Inject constructor(
     suspend fun addExcludedFolders(paths: Collection<String>) {
         if (paths.isEmpty()) return
         context.dataStore.edit { it[Keys.EXCLUDED_FOLDERS] = (it[Keys.EXCLUDED_FOLDERS] ?: emptySet()) + paths }
+    }
+
+    suspend fun setThemePreset(preset: ThemePreset) {
+        context.dataStore.edit { it[Keys.THEME_PRESET] = preset.name }
+    }
+
+    suspend fun setAccentColorOption(option: AccentColorOption) {
+        context.dataStore.edit { it[Keys.ACCENT_COLOR] = option.name }
+    }
+
+    suspend fun setNowPlayingVisualMode(mode: NowPlayingVisualMode) {
+        context.dataStore.edit { it[Keys.NOW_PLAYING_VISUAL_MODE] = mode.name }
     }
 }

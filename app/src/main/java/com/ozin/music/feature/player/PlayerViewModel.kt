@@ -7,6 +7,9 @@ import com.ozin.music.core.domain.LrcParser
 import com.ozin.music.core.domain.LyricLine
 import com.ozin.music.core.player.PlaybackUiState
 import com.ozin.music.core.player.PlayerController
+import com.ozin.music.core.settings.AppSettings
+import com.ozin.music.core.settings.NowPlayingVisualMode
+import com.ozin.music.core.settings.SettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,6 +24,7 @@ import javax.inject.Inject
 class PlayerViewModel @Inject constructor(
     val playerController: PlayerController,
     private val playlistRepository: PlaylistRepository,
+    private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
 
     val playbackState: StateFlow<PlaybackUiState> = playerController.state
@@ -31,6 +35,14 @@ class PlayerViewModel @Inject constructor(
     val playlists = playlistRepository.playlists.stateIn(
         viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList()
     )
+
+    val settings: StateFlow<AppSettings> = settingsRepository.settings.stateIn(
+        viewModelScope, SharingStarted.WhileSubscribed(5_000), AppSettings()
+    )
+
+    fun setVisualMode(mode: NowPlayingVisualMode) {
+        viewModelScope.launch { settingsRepository.setNowPlayingVisualMode(mode) }
+    }
 
     init {
         viewModelScope.launch {
