@@ -18,10 +18,12 @@ import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.Home
@@ -42,6 +44,7 @@ import com.ozin.music.feature.permission.audioPermissionName
 import com.ozin.music.feature.player.MiniPlayerBar
 import com.ozin.music.feature.player.NowPlayingScreen
 import com.ozin.music.feature.playlist.EqualizerScreen
+import com.ozin.music.feature.playlist.PlaylistDetailScreen
 import com.ozin.music.feature.playlist.PlaylistsScreen
 import com.ozin.music.feature.settings.SettingsScreen
 import dagger.hilt.android.AndroidEntryPoint
@@ -54,6 +57,8 @@ object Routes {
     const val EQ = "eq"
     const val SETTINGS = "settings"
     const val NOW_PLAYING = "now_playing"
+    const val PLAYLIST_DETAIL = "playlist/{playlistId}"
+    fun playlistDetail(playlistId: Long) = "playlist/$playlistId"
 }
 
 @AndroidEntryPoint
@@ -113,10 +118,21 @@ private fun OzinApp() {
             ) {
                 composable(Routes.HOME) { HomeScreen(onSongClick = { navController.navigate(Routes.NOW_PLAYING) }) }
                 composable(Routes.LIBRARY) { LibraryScreen(onSongClick = { navController.navigate(Routes.NOW_PLAYING) }) }
-                composable(Routes.LISTS) { PlaylistsScreen() }
+                composable(Routes.LISTS) {
+                    PlaylistsScreen(onPlaylistClick = { id -> navController.navigate(Routes.playlistDetail(id)) })
+                }
                 composable(Routes.EQ) { EqualizerScreen() }
                 composable(Routes.SETTINGS) { SettingsScreen() }
                 composable(Routes.NOW_PLAYING) { NowPlayingScreen(onBack = { navController.popBackStack() }) }
+                composable(
+                    route = Routes.PLAYLIST_DETAIL,
+                    arguments = listOf(navArgument("playlistId") { type = NavType.LongType }),
+                ) {
+                    PlaylistDetailScreen(
+                        onBack = { navController.popBackStack() },
+                        onSongClick = { navController.navigate(Routes.NOW_PLAYING) },
+                    )
+                }
             }
         }
     }

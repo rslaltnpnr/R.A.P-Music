@@ -33,4 +33,8 @@ class PlaylistViewModel @Inject constructor(
     fun delete(playlist: Playlist) {
         viewModelScope.launch { playlistRepository.delete(playlist) }
     }
+
+    fun duplicate(playlist: Playlist) {
+        viewModelScope.launch { playlistRepository.duplicate(playlist) }
+    }
 }

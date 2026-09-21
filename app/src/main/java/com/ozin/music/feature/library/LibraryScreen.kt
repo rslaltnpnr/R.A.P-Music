@@ -1,8 +1,11 @@
 package com.ozin.music.feature.library
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,15 +19,21 @@ import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.PlaylistAdd
+import androidx.compose.material.icons.filled.QueueMusic
+import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.ViewList
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Tab
@@ -42,14 +51,17 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.ozin.music.core.data.mediastore.MediaStoreScanner
 import com.ozin.music.core.data.model.Song
+import com.ozin.music.core.domain.SongGroup
 import com.ozin.music.core.domain.SortOrder
 
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun LibraryScreen(onSongClick: () -> Unit, viewModel: LibraryViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val scanner = remember(context) { MediaStoreScanner(context) }
     var sortMenuOpen by remember { mutableStateOf(false) }
+    var songForMenu by remember { mutableStateOf<Song?>(null) }
 
     Column(
         modifier = Modifier
@@ -76,32 +88,68 @@ fun LibraryScreen(onSongClick: () -> Unit, viewModel: LibraryViewModel = hiltVie
             }
         }
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 4.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            androidx.compose.foundation.layout.Box {
+        if (state.tab.isGrouped() && state.selectedGroup == null) {
+            // Grouped bucket list (Albums/Artists/Folders/Genres).
+            if (state.groups.isEmpty()) {
                 Text(
-                    text = "Sort: ${state.sortOrder.name}",
-                    modifier = Modifier.clickable { sortMenuOpen = true },
+                    text = "Nothing found.",
+                    modifier = Modifier.padding(24.dp),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                DropdownMenu(expanded = sortMenuOpen, onDismissRequest = { sortMenuOpen = false }) {
-                    SortOrder.entries.forEach { order ->
-                        DropdownMenuItem(
-                            text = { Text(order.name) },
-                            onClick = { viewModel.selectSort(order); sortMenuOpen = false },
-                        )
+            } else {
+                LazyColumn {
+                    items(state.groups, key = { it.key }) { group ->
+                        GroupRow(group, scanner, onClick = { viewModel.selectGroup(group) })
                     }
                 }
             }
-            IconButton(onClick = viewModel::toggleViewMode) {
-                Icon(
-                    imageVector = if (state.viewMode == ViewMode.LIST) Icons.Filled.GridView else Icons.Filled.ViewList,
-                    contentDescription = "Toggle view",
-                )
+            return@Column
+        }
+
+        if (state.tab.isGrouped() && state.selectedGroup != null) {
+            val group = state.selectedGroup!!
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+            ) {
+                IconButton(onClick = { viewModel.clearGroupSelection() }) {
+                    Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                }
+                Column {
+                    Text(group.title, color = MaterialTheme.colorScheme.onBackground)
+                    Text(group.subtitle, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        } else {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Box {
+                    Text(
+                        text = "Sort: ${state.sortOrder.name}",
+                        modifier = Modifier.clickable { sortMenuOpen = true },
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    DropdownMenu(expanded = sortMenuOpen, onDismissRequest = { sortMenuOpen = false }) {
+                        SortOrder.entries.forEach { order ->
+                            DropdownMenuItem(
+                                text = { Text(order.name) },
+                                onClick = { viewModel.selectSort(order); sortMenuOpen = false },
+                            )
+                        }
+                    }
+                }
+                IconButton(onClick = viewModel::toggleViewMode) {
+                    Icon(
+                        imageVector = if (state.viewMode == ViewMode.LIST) Icons.Filled.GridView else Icons.Filled.ViewList,
+                        contentDescription = "Toggle view",
+                    )
+                }
             }
         }
 
@@ -114,7 +162,13 @@ fun LibraryScreen(onSongClick: () -> Unit, viewModel: LibraryViewModel = hiltVie
         } else if (state.viewMode == ViewMode.LIST) {
             LazyColumn {
                 items(state.songs, key = { it.id }) { song ->
-                    SongRow(song, scanner, onClick = { viewModel.playSong(song); onSongClick() }, onFavorite = { viewModel.toggleFavorite(song) })
+                    SongRow(
+                        song = song,
+                        scanner = scanner,
+                        onClick = { viewModel.playSong(song); onSongClick() },
+                        onFavorite = { viewModel.toggleFavorite(song) },
+                        onLongClick = { songForMenu = song },
+                    )
                 }
             }
         } else {
@@ -123,7 +177,10 @@ fun LibraryScreen(onSongClick: () -> Unit, viewModel: LibraryViewModel = hiltVie
                     Column(
                         modifier = Modifier
                             .padding(8.dp)
-                            .clickable { viewModel.playSong(song); onSongClick() },
+                            .combinedClickable(
+                                onClick = { viewModel.playSong(song); onSongClick() },
+                                onLongClick = { songForMenu = song },
+                            ),
                     ) {
                         AsyncImage(
                             model = scanner.albumArtUri(song.albumId),
@@ -140,14 +197,56 @@ fun LibraryScreen(onSongClick: () -> Unit, viewModel: LibraryViewModel = hiltVie
             }
         }
     }
+
+    val menuSong = songForMenu
+    if (menuSong != null) {
+        SongActionSheet(
+            song = menuSong,
+            playlists = state.playlists,
+            onDismiss = { songForMenu = null },
+            onPlayNext = { viewModel.playNext(menuSong); songForMenu = null },
+            onAddToQueue = { viewModel.addToQueue(menuSong); songForMenu = null },
+            onAddToPlaylist = { playlistId -> viewModel.addToPlaylist(playlistId, menuSong); songForMenu = null },
+        )
+    }
 }
 
 @Composable
-private fun SongRow(song: Song, scanner: MediaStoreScanner, onClick: () -> Unit, onFavorite: () -> Unit) {
+private fun GroupRow(group: SongGroup, scanner: MediaStoreScanner, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+    ) {
+        AsyncImage(
+            model = scanner.albumArtUri(group.albumId),
+            contentDescription = group.title,
+            modifier = Modifier
+                .size(48.dp)
+                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp)),
+        )
+        Column(modifier = Modifier.padding(start = 12.dp)) {
+            Text(group.title, color = MaterialTheme.colorScheme.onBackground, maxLines = 1)
+            Text(group.subtitle, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun SongRow(
+    song: Song,
+    scanner: MediaStoreScanner,
+    onClick: () -> Unit,
+    onFavorite: () -> Unit,
+    onLongClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
     ) {
@@ -172,6 +271,67 @@ private fun SongRow(song: Song, scanner: MediaStoreScanner, onClick: () -> Unit,
                 contentDescription = "Favorite",
                 tint = if (song.isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
             )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SongActionSheet(
+    song: Song,
+    playlists: List<com.ozin.music.core.data.model.Playlist>,
+    onDismiss: () -> Unit,
+    onPlayNext: () -> Unit,
+    onAddToQueue: () -> Unit,
+    onAddToPlaylist: (Long) -> Unit,
+) {
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(song.title, style = MaterialTheme.typography.titleMedium)
+            Text(song.artist, color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onPlayNext)
+                    .padding(vertical = 12.dp),
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+            ) {
+                Icon(Icons.Filled.SkipNext, contentDescription = null)
+                Text("Play next", modifier = Modifier.padding(start = 16.dp))
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onAddToQueue)
+                    .padding(vertical = 12.dp),
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+            ) {
+                Icon(Icons.Filled.QueueMusic, contentDescription = null)
+                Text("Add to queue", modifier = Modifier.padding(start = 16.dp))
+            }
+
+            Text(
+                "Add to playlist",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+            if (playlists.isEmpty()) {
+                Text("No playlists yet. Create one from the Lists tab.", modifier = Modifier.padding(vertical = 8.dp))
+            }
+            playlists.forEach { playlist ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onAddToPlaylist(playlist.id) }
+                        .padding(vertical = 12.dp),
+                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                ) {
+                    Icon(Icons.Filled.PlaylistAdd, contentDescription = null)
+                    Text(playlist.name, modifier = Modifier.padding(start = 16.dp))
+                }
+            }
         }
     }
 }
