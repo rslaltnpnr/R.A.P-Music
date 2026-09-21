@@ -1,13 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- App launcher icon background: dark gradient matching the app's own
+     default-artwork/theme palette (see res/drawable/default_artwork.xml). -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path
-        android:pathData="M0,0h108v108h-108z"
-        android:fillColor="#0B0F19" />
-    <path
-        android:pathData="M0,54a54,54 0,0 1,108 0a54,54 0,0 1,-108 0z"
-        android:fillColor="#131B2E" />
+
+    <path android:pathData="M0,0h108v108h-108z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="0"
+                android:startY="0"
+                android:endX="108"
+                android:endY="108"
+                android:startColor="#2A1B4D"
+                android:centerColor="#171126"
+                android:endColor="#0B0F19" />
+        </aapt:attr>
+    </path>
+
+    <!-- Soft radial glow behind the mark, centered in the adaptive-icon safe zone -->
+    <path android:pathData="M54,50m-40,0a40,40 0,1 1,80 0a40,40 0,1 1,-80 0">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="54"
+                android:centerY="50"
+                android:gradientRadius="40"
+                android:startColor="#4D7C4DFF"
+                android:endColor="#007C4DFF" />
+        </aapt:attr>
+    </path>
 </vector>

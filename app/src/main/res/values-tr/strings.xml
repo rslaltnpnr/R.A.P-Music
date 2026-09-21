@@ -243,4 +243,9 @@
     <string name="debug_audio_output">Ses çıkışı</string>
     <string name="debug_yes">Evet</string>
     <string name="debug_no">Hayır</string>
+
+    <!-- Hakkında -->
+    <string name="settings_about">Hakkında</string>
+    <string name="settings_about_version_format">Sürüm %1$s</string>
+    <string name="settings_about_developer">Resul AltınPınar (R.A.P) tarafından geliştirildi</string>
 </resources>
