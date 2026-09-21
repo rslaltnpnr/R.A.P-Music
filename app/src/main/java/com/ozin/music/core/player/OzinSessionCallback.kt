@@ -119,8 +119,18 @@ class OzinLibrarySessionCallback(
         mediaItems: MutableList<MediaItem>,
     ): ListenableFuture<MutableList<MediaItem>> = ioFuture {
         mediaItems.mapNotNull { requested ->
-            val songId = AutoMediaTree.songIdOrNull(requested.mediaId) ?: return@mapNotNull null
-            songRepository.getById(songId)?.toPlayableMediaItem()
+            // Items that already carry a real URI (every phone-side play
+            // request built by PlayerController.toMediaItem()/playRemoteFiles)
+            // are already fully playable — pass them through unchanged. Only
+            // remap the placeholder, URI-less items Android Auto's browse
+            // tree hands back (media id "song_<id>", no URI) into a real,
+            // playable MediaItem.
+            if (requested.localConfiguration != null) {
+                requested
+            } else {
+                val songId = AutoMediaTree.songIdOrNull(requested.mediaId) ?: return@mapNotNull null
+                songRepository.getById(songId)?.toPlayableMediaItem()
+            }
         }.toMutableList()
     }
 
@@ -140,7 +150,12 @@ class OzinLibrarySessionCallback(
     private fun Song.toPlayableMediaItem(): MediaItem =
         MediaItem.Builder()
             .setMediaId(AutoMediaTree.songMediaId(id))
-            .setUri(android.net.Uri.fromFile(java.io.File(path)))
+            .setUri(
+                android.content.ContentUris.withAppendedId(
+                    android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                    id,
+                )
+            )
             .setMediaMetadata(
                 MediaMetadata.Builder()
                     .setTitle(title)
