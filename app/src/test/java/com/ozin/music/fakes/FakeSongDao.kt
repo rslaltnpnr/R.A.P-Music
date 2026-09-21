@@ -60,6 +60,11 @@ class FakeSongDao : SongDao {
         emit()
     }
 
+    override suspend fun setRating(id: Long, rating: Int) {
+        songs[id]?.let { songs[id] = it.copy(rating = rating) }
+        emit()
+    }
+
     override suspend fun delete(song: Song) {
         songs.remove(song.id)
         emit()

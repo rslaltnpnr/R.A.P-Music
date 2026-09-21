@@ -15,6 +15,7 @@ import com.ozin.music.core.data.repository.SongRepository
 import com.ozin.music.core.domain.AbRepeat
 import com.ozin.music.core.domain.AbRepeatState
 import com.ozin.music.core.domain.PlaybackSpeed
+import com.ozin.music.core.domain.RatingValidator
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -153,6 +154,19 @@ class PlayerController @Inject constructor(
     }
 
     fun currentAudioSessionId(): Int = controller?.let { 0 } ?: 0
+
+    /** Persists a 0-5 star rating for [songId] and reflects it immediately if
+     * it is the song currently playing. */
+    fun setRating(songId: Long, rating: Int) {
+        scope.launch {
+            val clamped = RatingValidator.clamp(rating)
+            songRepository.setRating(songId, clamped)
+            val current = _state.value.currentSong
+            if (current?.id == songId) {
+                _state.value = _state.value.copy(currentSong = current.copy(rating = clamped))
+            }
+        }
+    }
 
     /** Real ExoPlayer speed/pitch control, clamped to a sane, testable range. */
     fun setPlaybackSpeed(speed: Float) {

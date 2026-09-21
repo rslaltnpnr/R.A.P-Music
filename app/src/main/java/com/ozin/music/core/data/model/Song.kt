@@ -24,4 +24,6 @@ data class Song(
     val isFavorite: Boolean = false,
     val playCount: Int = 0,
     val lastPlayedAt: Long = 0L,
+    /** 0 = unrated, 1-5 stars otherwise. */
+    val rating: Int = 0,
 )

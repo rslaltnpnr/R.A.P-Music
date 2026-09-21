@@ -63,6 +63,7 @@ import coil.request.ImageRequest
 import com.ozin.music.core.data.mediastore.MediaStoreScanner
 import com.ozin.music.core.domain.LrcParser
 import com.ozin.music.core.player.RepeatUiMode
+import com.ozin.music.core.ui.RatingStars
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -183,6 +184,13 @@ fun NowPlayingScreen(onBack: () -> Unit, onOpenLyrics: () -> Unit = {}, viewMode
 
         Text(song.title, style = MaterialTheme.typography.headlineSmall, color = Color.White)
         Text("${song.artist} • ${song.album}", style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.7f))
+        RatingStars(
+            rating = song.rating,
+            onRatingChange = { viewModel.setRating(song.id, it) },
+            modifier = Modifier.padding(top = 4.dp),
+            filledColor = accentColor,
+            emptyColor = Color.White.copy(alpha = 0.4f),
+        )
 
         val currentLyric = LrcParser.currentLine(lyrics, state.positionMs)
         if (lyrics.isNotEmpty()) {

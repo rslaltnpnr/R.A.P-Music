@@ -28,6 +28,7 @@ fun SettingsScreen(
     onOpenFolders: () -> Unit = {},
     onOpenProblemFiles: () -> Unit = {},
     onOpenDuplicates: () -> Unit = {},
+    onOpenStats: () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val settings by viewModel.settings.collectAsState()
@@ -96,6 +97,9 @@ fun SettingsScreen(
         }
 
         Button(onClick = { viewModel.rescanLibrary() }) { Text("Rescan library") }
+
+        Text("Personalization", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
+        Button(onClick = onOpenStats) { Text("Listening statistics") }
     }
 }
 

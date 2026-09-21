@@ -59,6 +59,9 @@ interface SongDao {
     )
     suspend fun recordPlay(id: Long, timestamp: Long)
 
+    @Query("UPDATE songs SET rating = :rating WHERE id = :id")
+    suspend fun setRating(id: Long, rating: Int)
+
     @Delete
     suspend fun delete(song: Song)
 }

@@ -55,6 +55,7 @@ import com.ozin.music.core.data.mediastore.MediaStoreScanner
 import com.ozin.music.core.data.model.Song
 import com.ozin.music.core.domain.SongGroup
 import com.ozin.music.core.domain.SortOrder
+import com.ozin.music.core.ui.RatingStars
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -216,6 +217,7 @@ fun LibraryScreen(
             onAddToPlaylist = { playlistId -> viewModel.addToPlaylist(playlistId, menuSong); songForMenu = null },
             onEditInfo = { onEditSong(menuSong.id); songForMenu = null },
             onManageFile = { onManageFile(menuSong.id); songForMenu = null },
+            onRatingChange = { rating -> viewModel.setRating(menuSong, rating) },
         )
     }
 }
@@ -295,11 +297,18 @@ private fun SongActionSheet(
     onAddToPlaylist: (Long) -> Unit,
     onEditInfo: () -> Unit = {},
     onManageFile: () -> Unit = {},
+    onRatingChange: (Int) -> Unit = {},
 ) {
+    var rating by remember(song.id) { mutableStateOf(song.rating) }
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(song.title, style = MaterialTheme.typography.titleMedium)
             Text(song.artist, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            RatingStars(
+                rating = rating,
+                onRatingChange = { rating = it; onRatingChange(it) },
+                modifier = Modifier.padding(vertical = 8.dp),
+            )
 
             Row(
                 modifier = Modifier
