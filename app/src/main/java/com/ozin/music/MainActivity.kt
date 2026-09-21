@@ -26,7 +26,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LibraryMusic
-import androidx.compose.material.icons.filled.List as ListIcon
+import androidx.compose.material.icons.filled.QueueMusic
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -128,7 +128,7 @@ private fun OzinBottomNav(navController: NavController, currentRoute: String?) {
         val items = listOf(
             Triple(Routes.HOME, Icons.Filled.Home, R.string.nav_home),
             Triple(Routes.LIBRARY, Icons.Filled.LibraryMusic, R.string.nav_music),
-            Triple(Routes.LISTS, ListIcon, R.string.nav_lists),
+            Triple(Routes.LISTS, Icons.Filled.QueueMusic, R.string.nav_lists),
             Triple(Routes.EQ, Icons.Filled.GraphicEq, R.string.nav_eq),
             Triple(Routes.SETTINGS, Icons.Filled.Settings, R.string.nav_settings),
         )
