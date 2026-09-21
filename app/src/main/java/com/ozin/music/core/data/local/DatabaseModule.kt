@@ -41,4 +41,7 @@ object DatabaseModule {
 
     @Provides
     fun provideRemoteServerDao(database: OzinDatabase): RemoteServerDao = database.remoteServerDao()
+
+    @Provides
+    fun provideCustomEqPresetDao(database: OzinDatabase): CustomEqPresetDao = database.customEqPresetDao()
 }

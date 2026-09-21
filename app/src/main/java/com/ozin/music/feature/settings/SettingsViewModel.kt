@@ -10,6 +10,7 @@ import com.ozin.music.core.settings.RepeatMode
 import com.ozin.music.core.settings.SettingsRepository
 import com.ozin.music.core.settings.toLocaleListCompat
 import com.ozin.music.core.ui.theme.AccentColorOption
+import com.ozin.music.core.ui.theme.ThemeMode
 import com.ozin.music.core.ui.theme.ThemePreset
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -87,6 +88,10 @@ class SettingsViewModel @Inject constructor(
 
     fun setThemePreset(preset: ThemePreset) {
         viewModelScope.launch { settingsRepository.setThemePreset(preset) }
+    }
+
+    fun setThemeMode(mode: ThemeMode) {
+        viewModelScope.launch { settingsRepository.setThemeMode(mode) }
     }
 
     fun setAccentColorOption(option: AccentColorOption) {

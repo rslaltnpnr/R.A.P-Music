@@ -3,6 +3,7 @@ package com.ozin.music.core.ui.theme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
@@ -12,6 +13,18 @@ val OzinSurface = Color(0xFF192238)
 val OzinTextPrimary = Color(0xFFFFFFFF)
 val OzinTextSecondary = Color(0xFFB7C0D4)
 val OzinAccentDefault = Color(0xFF7C4DFF)
+
+// Light counterparts of the default dark palette, used when the user picks
+// light or system-light mode with ThemePreset.DEFAULT_DARK.
+val OzinLightBackground = Color(0xFFFAFAFE)
+val OzinLightCard = Color(0xFFFFFFFF)
+val OzinLightSurface = Color(0xFFF0F1F7)
+val OzinLightTextPrimary = Color(0xFF1B1B1F)
+val OzinLightTextSecondary = Color(0xFF49454F)
+
+/** Dark/light mode preference, independent of [ThemePreset]. [SYSTEM] follows
+ * [androidx.compose.foundation.isSystemInDarkTheme] at the call site. */
+enum class ThemeMode { DARK, LIGHT, SYSTEM }
 
 /** Selectable overall visual style for the app, beyond the single original
  * dark theme. [ThemePreset.DEFAULT_DARK] is the original Phase 1-8 theme and
@@ -42,18 +55,36 @@ enum class AccentColorOption(val color: Color) {
  * Pure mapping from a [ThemePreset] + accent [Color] to a Material3
  * [ColorScheme]. Kept free of Compose runtime state so it is directly unit
  * testable.
+ *
+ * [darkMode] only affects [ThemePreset.DEFAULT_DARK]: AMOLED/NEON/RETRO/MINIMAL
+ * are inherently dark-styled presets (true-black, neon-on-black, sepia,
+ * near-black minimal) and stay dark regardless of the light/dark setting,
+ * exactly as they always have.
  */
-fun colorSchemeFor(preset: ThemePreset, accent: Color): ColorScheme = when (preset) {
-    ThemePreset.DEFAULT_DARK -> darkColorScheme(
-        primary = accent,
-        secondary = accent,
-        background = OzinBackground,
-        surface = OzinSurface,
-        surfaceVariant = OzinCard,
-        onBackground = OzinTextPrimary,
-        onSurface = OzinTextPrimary,
-        onPrimary = OzinTextPrimary,
-    )
+fun colorSchemeFor(preset: ThemePreset, accent: Color, darkMode: Boolean = true): ColorScheme = when (preset) {
+    ThemePreset.DEFAULT_DARK -> if (darkMode) {
+        darkColorScheme(
+            primary = accent,
+            secondary = accent,
+            background = OzinBackground,
+            surface = OzinSurface,
+            surfaceVariant = OzinCard,
+            onBackground = OzinTextPrimary,
+            onSurface = OzinTextPrimary,
+            onPrimary = OzinTextPrimary,
+        )
+    } else {
+        lightColorScheme(
+            primary = accent,
+            secondary = accent,
+            background = OzinLightBackground,
+            surface = OzinLightSurface,
+            surfaceVariant = OzinLightCard,
+            onBackground = OzinLightTextPrimary,
+            onSurface = OzinLightTextPrimary,
+            onPrimary = Color.White,
+        )
+    }
     ThemePreset.AMOLED -> darkColorScheme(
         primary = accent,
         secondary = accent,
@@ -106,10 +137,11 @@ fun colorSchemeFor(preset: ThemePreset, accent: Color): ColorScheme = when (pres
 fun OzinMusicTheme(
     preset: ThemePreset = ThemePreset.DEFAULT_DARK,
     accent: Color = OzinAccentDefault,
+    darkMode: Boolean = true,
     content: @Composable () -> Unit,
 ) {
     MaterialTheme(
-        colorScheme = colorSchemeFor(preset, accent),
+        colorScheme = colorSchemeFor(preset, accent, darkMode),
         typography = MaterialTheme.typography,
         content = content,
     )

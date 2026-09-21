@@ -3,6 +3,7 @@ package com.ozin.music.core.data.local
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import com.ozin.music.core.data.model.BluetoothDeviceProfile
+import com.ozin.music.core.data.model.CustomEqPreset
 import com.ozin.music.core.data.model.ListeningEvent
 import com.ozin.music.core.data.model.Playlist
 import com.ozin.music.core.data.model.PlaylistSongCrossRef
@@ -15,9 +16,9 @@ import com.ozin.music.core.data.model.Song
     entities = [
         Song::class, Playlist::class, PlaylistSongCrossRef::class, ProblemFile::class,
         ListeningEvent::class, SmartPlaylist::class, BluetoothDeviceProfile::class,
-        RemoteServer::class,
+        RemoteServer::class, CustomEqPreset::class,
     ],
-    version = 6,
+    version = 7,
     exportSchema = false,
 )
 abstract class OzinDatabase : RoomDatabase() {
@@ -28,4 +29,5 @@ abstract class OzinDatabase : RoomDatabase() {
     abstract fun smartPlaylistDao(): SmartPlaylistDao
     abstract fun bluetoothDeviceProfileDao(): BluetoothDeviceProfileDao
     abstract fun remoteServerDao(): RemoteServerDao
+    abstract fun customEqPresetDao(): CustomEqPresetDao
 }
