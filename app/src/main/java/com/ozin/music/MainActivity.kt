@@ -59,7 +59,9 @@ import com.ozin.music.feature.playlist.SmartPlaylistsScreen
 import com.ozin.music.feature.problems.ProblemFilesScreen
 import com.ozin.music.feature.remote.RemoteBrowseScreen
 import com.ozin.music.feature.remote.RemoteServersScreen
+import com.ozin.music.feature.search.SmartSearchScreen
 import com.ozin.music.feature.settings.SettingsScreen
+import com.ozin.music.feature.similar.SimilarSongsScreen
 import com.ozin.music.feature.stats.StatsScreen
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -85,11 +87,14 @@ object Routes {
     const val CAR_MODE = "car_mode"
     const val REMOTE_SERVERS = "remote_servers"
     const val REMOTE_BROWSE = "remote_browse/{serverId}"
+    const val SMART_SEARCH = "smart_search"
+    const val SIMILAR_SONGS = "similar_songs/{songId}"
     fun playlistDetail(playlistId: Long) = "playlist/$playlistId"
     fun metadataEdit(songId: Long) = "metadata_edit/$songId"
     fun fileManagement(songId: Long) = "file_management/$songId"
     fun smartPlaylistDetail(smartPlaylistId: Long) = "smart_playlist/$smartPlaylistId"
     fun remoteBrowse(serverId: Long) = "remote_browse/$serverId"
+    fun similarSongs(songId: Long) = "similar_songs/$songId"
 }
 
 @AndroidEntryPoint
@@ -154,6 +159,7 @@ private fun OzinApp() {
                         onSongClick = { navController.navigate(Routes.NOW_PLAYING) },
                         onEditSong = { songId -> navController.navigate(Routes.metadataEdit(songId)) },
                         onManageFile = { songId -> navController.navigate(Routes.fileManagement(songId)) },
+                        onSimilarSongs = { songId -> navController.navigate(Routes.similarSongs(songId)) },
                     )
                 }
                 composable(Routes.LISTS) {
@@ -171,6 +177,22 @@ private fun OzinApp() {
                         onOpenStats = { navController.navigate(Routes.STATS) },
                         onOpenBluetoothDevices = { navController.navigate(Routes.BLUETOOTH_DEVICES) },
                         onOpenRemoteServers = { navController.navigate(Routes.REMOTE_SERVERS) },
+                        onOpenSmartSearch = { navController.navigate(Routes.SMART_SEARCH) },
+                    )
+                }
+                composable(Routes.SMART_SEARCH) {
+                    SmartSearchScreen(
+                        onBack = { navController.popBackStack() },
+                        onSongClick = { navController.navigate(Routes.NOW_PLAYING) },
+                    )
+                }
+                composable(
+                    route = Routes.SIMILAR_SONGS,
+                    arguments = listOf(navArgument("songId") { type = NavType.LongType }),
+                ) {
+                    SimilarSongsScreen(
+                        onBack = { navController.popBackStack() },
+                        onSongClick = { navController.navigate(Routes.NOW_PLAYING) },
                     )
                 }
                 composable(Routes.BLUETOOTH_DEVICES) { BluetoothDevicesScreen() }

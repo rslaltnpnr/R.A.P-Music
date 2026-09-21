@@ -65,6 +65,11 @@ class FakeSongDao : SongDao {
         emit()
     }
 
+    override suspend fun setMoodTags(id: Long, moodTags: String) {
+        songs[id]?.let { songs[id] = it.copy(moodTags = moodTags) }
+        emit()
+    }
+
     override suspend fun delete(song: Song) {
         songs.remove(song.id)
         emit()

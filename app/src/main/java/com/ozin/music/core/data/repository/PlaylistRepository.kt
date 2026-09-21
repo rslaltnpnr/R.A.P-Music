@@ -6,6 +6,7 @@ import com.ozin.music.core.data.model.PlaylistSongCrossRef
 import com.ozin.music.core.data.model.Song
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -14,6 +15,13 @@ class PlaylistRepository @Inject constructor(
     private val playlistDao: PlaylistDao,
 ) {
     val playlists: Flow<List<Playlist>> = playlistDao.observePlaylists()
+
+    /** songId -> the set of playlist ids it belongs to, used by
+     * [com.ozin.music.core.domain.SimilaritySeeker] as a co-occurrence
+     * signal ("these two songs are often kept together"). */
+    val songPlaylistMembership: Flow<Map<Long, Set<Long>>> = playlistDao.observeAllCrossRefs().map { crossRefs ->
+        crossRefs.groupBy({ it.songId }, { it.playlistId }).mapValues { it.value.toSet() }
+    }
 
     suspend fun create(name: String): Long = playlistDao.insert(Playlist(name = name))
 

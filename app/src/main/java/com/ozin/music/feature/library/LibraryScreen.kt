@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.QueueMusic
+import androidx.compose.material.icons.filled.Recommend
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.ViewList
 import androidx.compose.material3.DropdownMenu
@@ -53,6 +54,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.ozin.music.core.data.mediastore.MediaStoreScanner
 import com.ozin.music.core.data.model.Song
+import com.ozin.music.core.domain.MoodTagCodec
 import com.ozin.music.core.domain.SongGroup
 import com.ozin.music.core.domain.SortOrder
 import com.ozin.music.core.ui.RatingStars
@@ -63,6 +65,7 @@ fun LibraryScreen(
     onSongClick: () -> Unit,
     onEditSong: (Long) -> Unit = {},
     onManageFile: (Long) -> Unit = {},
+    onSimilarSongs: (Long) -> Unit = {},
     viewModel: LibraryViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -217,6 +220,7 @@ fun LibraryScreen(
             onAddToPlaylist = { playlistId -> viewModel.addToPlaylist(playlistId, menuSong); songForMenu = null },
             onEditInfo = { onEditSong(menuSong.id); songForMenu = null },
             onManageFile = { onManageFile(menuSong.id); songForMenu = null },
+            onSimilarSongs = { onSimilarSongs(menuSong.id); songForMenu = null },
             onRatingChange = { rating -> viewModel.setRating(menuSong, rating) },
         )
     }
@@ -275,6 +279,7 @@ private fun SongRow(
         ) {
             Text(song.title, color = MaterialTheme.colorScheme.onBackground, maxLines = 1)
             Text(song.artist, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+            MoodChipRow(song.moodTags)
         }
         IconButton(onClick = onFavorite) {
             Icon(
@@ -297,6 +302,7 @@ private fun SongActionSheet(
     onAddToPlaylist: (Long) -> Unit,
     onEditInfo: () -> Unit = {},
     onManageFile: () -> Unit = {},
+    onSimilarSongs: () -> Unit = {},
     onRatingChange: (Int) -> Unit = {},
 ) {
     var rating by remember(song.id) { mutableStateOf(song.rating) }
@@ -351,6 +357,16 @@ private fun SongActionSheet(
                 Icon(Icons.Filled.QueueMusic, contentDescription = null)
                 Text("Add to queue", modifier = Modifier.padding(start = 16.dp))
             }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onSimilarSongs)
+                    .padding(vertical = 12.dp),
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+            ) {
+                Icon(Icons.Filled.Recommend, contentDescription = null)
+                Text("Similar songs", modifier = Modifier.padding(start = 16.dp))
+            }
 
             Text(
                 "Add to playlist",
@@ -372,6 +388,33 @@ private fun SongActionSheet(
                     Icon(Icons.Filled.PlaylistAdd, contentDescription = null)
                     Text(playlist.name, modifier = Modifier.padding(start = 16.dp))
                 }
+            }
+        }
+    }
+}
+
+/**
+ * Small chip row showing a song's heuristic mood tags (see MoodClassifier),
+ * matching the plain "rounded box + text" tag style used elsewhere for
+ * short labels. Renders nothing when no mood tags have been computed yet.
+ */
+@Composable
+private fun MoodChipRow(moodTagsRaw: String) {
+    val moods = MoodTagCodec.decode(moodTagsRaw)
+    if (moods.isEmpty()) return
+    Row(modifier = Modifier.padding(top = 2.dp)) {
+        moods.forEach { mood ->
+            Box(
+                modifier = Modifier
+                    .padding(end = 4.dp)
+                    .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(6.dp))
+                    .padding(horizontal = 6.dp, vertical = 2.dp),
+            ) {
+                Text(
+                    text = mood.name.lowercase().replaceFirstChar { it.uppercase() },
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
     }

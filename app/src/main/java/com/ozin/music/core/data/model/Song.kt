@@ -26,4 +26,10 @@ data class Song(
     val lastPlayedAt: Long = 0L,
     /** 0 = unrated, 1-5 stars otherwise. */
     val rating: Int = 0,
+    /** Comma-separated [com.ozin.music.core.domain.Mood] names computed by
+     * [com.ozin.music.core.domain.MoodClassifier] (encoded via
+     * [com.ozin.music.core.domain.MoodTagCodec]). Empty until the user runs
+     * "Compute mood tags" in Settings, or after a rescan if this field is
+     * populated by that pass; simple heuristic labels, not machine learning. */
+    val moodTags: String = "",
 )

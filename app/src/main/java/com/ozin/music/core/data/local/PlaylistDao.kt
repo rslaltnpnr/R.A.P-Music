@@ -43,6 +43,9 @@ interface PlaylistDao {
     )
     suspend fun maxPosition(playlistId: Long): Int?
 
+    @Query("SELECT * FROM playlist_songs")
+    fun observeAllCrossRefs(): Flow<List<PlaylistSongCrossRef>>
+
     @Query(
         "SELECT songs.* FROM songs INNER JOIN playlist_songs " +
             "ON songs.id = playlist_songs.songId " +

@@ -73,4 +73,10 @@ class SettingsViewModel @Inject constructor(
     fun rescanLibrary() {
         viewModelScope.launch { songRepository.rescan() }
     }
+
+    /** Runs the heuristic mood-tag pass (see [com.ozin.music.core.domain.MoodClassifier])
+     * over the whole library as a one-shot plain-coroutine background task. */
+    fun computeMoodTags() {
+        viewModelScope.launch { songRepository.computeMoodTags() }
+    }
 }

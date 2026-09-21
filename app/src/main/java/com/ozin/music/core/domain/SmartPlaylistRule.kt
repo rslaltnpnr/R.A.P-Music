@@ -2,7 +2,11 @@ package com.ozin.music.core.domain
 
 /** Fields a smart-playlist rule can filter on. */
 enum class SmartRuleField {
-    GENRE, ARTIST, ALBUM, YEAR, DURATION_MS, RATING, FAVORITE, PLAY_COUNT, DATE_ADDED, DATE_PLAYED
+    GENRE, ARTIST, ALBUM, YEAR, DURATION_MS, RATING, FAVORITE, PLAY_COUNT, DATE_ADDED, DATE_PLAYED,
+    /** Matches against [com.ozin.music.core.data.model.Song.moodTags] (a
+     * comma-separated list of heuristic [Mood] names); use CONTAINS with a
+     * mood name such as "ENERGETIC". */
+    MOOD_TAG,
 }
 
 /** Comparison operators. Not every operator is meaningful for every field

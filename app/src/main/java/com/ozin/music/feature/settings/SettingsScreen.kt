@@ -31,6 +31,7 @@ fun SettingsScreen(
     onOpenStats: () -> Unit = {},
     onOpenBluetoothDevices: () -> Unit = {},
     onOpenRemoteServers: () -> Unit = {},
+    onOpenSmartSearch: () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val settings by viewModel.settings.collectAsState()
@@ -102,6 +103,18 @@ fun SettingsScreen(
 
         Text("Personalization", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
         Button(onClick = onOpenStats) { Text("Listening statistics") }
+        Column {
+            Button(onClick = { viewModel.computeMoodTags() }) { Text("Compute mood tags") }
+            Text(
+                "Assigns heuristic mood labels (Energetic, Calm, Sad, Happy, Dark, Workout, Night) to your " +
+                    "songs from their genre and listening-time patterns. Simple rule-based tagging, not AI.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+
+        Text("Smart search", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
+        Button(onClick = onOpenSmartSearch) { Text("Search by keyword") }
 
         Text("Car & Bluetooth", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
         Button(onClick = onOpenBluetoothDevices) { Text("Bluetooth device profiles") }
