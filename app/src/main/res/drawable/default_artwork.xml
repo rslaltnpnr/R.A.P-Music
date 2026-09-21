@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Honest default album-art composition used whenever a song has no
+     embedded/MediaStore art: a dark gradient backdrop with a simple,
+     stylized music-note mark. Used as the final fallback tier by
+     ArtworkResolver and mirrored in LibraryScreen/NowPlayingScreen's Coil
+     placeholders for visual consistency. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="512dp"
+    android:height="512dp"
+    android:viewportWidth="512"
+    android:viewportHeight="512">
+
+    <path android:pathData="M0,0h512v512h-512z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="0"
+                android:startY="0"
+                android:endX="512"
+                android:endY="512"
+                android:startColor="#2A1B4D"
+                android:centerColor="#171126"
+                android:endColor="#0B0F19" />
+        </aapt:attr>
+    </path>
+
+    <!-- Soft radial glow behind the mark -->
+    <path android:pathData="M256,256m-190,0a190,190 0,1 1,380 0a190,190 0,1 1,-380 0">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="256"
+                android:centerY="230"
+                android:gradientRadius="190"
+                android:startColor="#337C4DFF"
+                android:endColor="#007C4DFF" />
+        </aapt:attr>
+    </path>
+
+    <!-- Stylized music note: stem, two circular note-heads, and a flag -->
+    <path android:pathData="M226,168 L226,318 L246,318 L246,168 Z" android:fillColor="#F4F1FF" />
+    <path android:pathData="M300,120 L300,270 L320,270 L320,132 Z" android:fillColor="#F4F1FF" />
+    <path android:pathData="M226,168 L320,132 L320,158 L226,194 Z" android:fillColor="#B39DFF" />
+
+    <path android:pathData="M236,318m-40,0a40,40 0,1 1,80 0a40,40 0,1 1,-80 0" android:fillColor="#F4F1FF" />
+    <path android:pathData="M310,270m-40,0a40,40 0,1 1,80 0a40,40 0,1 1,-80 0" android:fillColor="#F4F1FF" />
+
+</vector>

@@ -50,6 +50,7 @@ import com.ozin.music.core.ui.theme.OzinMusicTheme
 import com.ozin.music.core.ui.theme.ThemeMode
 import com.ozin.music.feature.bluetooth.BluetoothDevicesScreen
 import com.ozin.music.feature.carmode.CarModeScreen
+import com.ozin.music.feature.debug.DebugScreen
 import com.ozin.music.feature.dj.DjModeScreen
 import com.ozin.music.feature.duplicates.DuplicatesScreen
 import com.ozin.music.feature.files.FileManagementSheet
@@ -101,6 +102,7 @@ object Routes {
     const val REMOTE_BROWSE = "remote_browse/{serverId}"
     const val SMART_SEARCH = "smart_search"
     const val SIMILAR_SONGS = "similar_songs/{songId}"
+    const val DEBUG_INFO = "debug_info"
     fun playlistDetail(playlistId: Long) = "playlist/$playlistId"
     fun metadataEdit(songId: Long) = "metadata_edit/$songId"
     fun fileManagement(songId: Long) = "file_management/$songId"
@@ -213,8 +215,10 @@ private fun OzinApp() {
                         onOpenRemoteServers = { navController.navigate(Routes.REMOTE_SERVERS) },
                         onOpenSmartSearch = { navController.navigate(Routes.SMART_SEARCH) },
                         onOpenDjMode = { navController.navigate(Routes.DJ_MODE) },
+                        onOpenDebugInfo = { navController.navigate(Routes.DEBUG_INFO) },
                     )
                 }
+                composable(Routes.DEBUG_INFO) { DebugScreen(onBack = { navController.popBackStack() }) }
                 composable(Routes.DJ_MODE) { DjModeScreen(onExit = { navController.popBackStack() }) }
                 composable(Routes.SMART_SEARCH) {
                     SmartSearchScreen(

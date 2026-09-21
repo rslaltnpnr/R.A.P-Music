@@ -30,7 +30,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ozin.music.R
+import com.ozin.music.core.settings.ArtworkQuality
 import com.ozin.music.core.settings.LanguageOption
+import com.ozin.music.core.settings.LockScreenPrivacy
 import com.ozin.music.core.settings.RepeatMode
 import com.ozin.music.core.ui.theme.AccentColorOption
 import com.ozin.music.core.ui.theme.ThemeMode
@@ -46,6 +48,7 @@ fun SettingsScreen(
     onOpenRemoteServers: () -> Unit = {},
     onOpenSmartSearch: () -> Unit = {},
     onOpenDjMode: () -> Unit = {},
+    onOpenDebugInfo: () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val settings by viewModel.settings.collectAsState()
@@ -209,6 +212,45 @@ fun SettingsScreen(
                 }
             }
         }
+
+        Text(stringResource(R.string.settings_lock_screen), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
+        SettingRow(
+            stringResource(R.string.settings_lock_screen_show_artwork),
+            settings.lockScreenShowArtwork,
+            viewModel::toggleLockScreenShowArtwork,
+        )
+        SettingRow(
+            stringResource(R.string.settings_lock_screen_show_media_info),
+            settings.lockScreenShowMediaInfo,
+            viewModel::toggleLockScreenShowMediaInfo,
+        )
+        SettingRow(
+            stringResource(R.string.settings_now_playing_gestures),
+            settings.nowPlayingGesturesEnabled,
+            viewModel::toggleNowPlayingGestures,
+        )
+
+        Text(stringResource(R.string.settings_artwork_quality), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            ArtworkQuality.entries.forEach { quality ->
+                val selected = settings.artworkQuality == quality
+                Button(onClick = { viewModel.setArtworkQuality(quality) }) {
+                    Text(if (selected) "✓ ${artworkQualityLabel(quality)}" else artworkQualityLabel(quality))
+                }
+            }
+        }
+
+        Text(stringResource(R.string.settings_lock_screen_privacy), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            LockScreenPrivacy.entries.forEach { privacy ->
+                val selected = settings.lockScreenPrivacy == privacy
+                Button(onClick = { viewModel.setLockScreenPrivacy(privacy) }) {
+                    Text(if (selected) "✓ ${lockScreenPrivacyLabel(privacy)}" else lockScreenPrivacyLabel(privacy))
+                }
+            }
+        }
+
+        Button(onClick = onOpenDebugInfo) { Text(stringResource(R.string.settings_debug_info)) }
     }
 }
 
@@ -251,4 +293,19 @@ private fun languageOptionLabel(option: LanguageOption): String = when (option) 
     LanguageOption.SYSTEM -> stringResource(R.string.settings_language_system)
     LanguageOption.ENGLISH -> stringResource(R.string.settings_language_english)
     LanguageOption.TURKISH -> stringResource(R.string.settings_language_turkish)
+}
+
+@Composable
+private fun artworkQualityLabel(quality: ArtworkQuality): String = when (quality) {
+    ArtworkQuality.AUTO -> stringResource(R.string.settings_artwork_quality_auto)
+    ArtworkQuality.HIGH -> stringResource(R.string.settings_artwork_quality_high)
+    ArtworkQuality.BALANCED -> stringResource(R.string.settings_artwork_quality_balanced)
+}
+
+@Composable
+private fun lockScreenPrivacyLabel(privacy: LockScreenPrivacy): String = when (privacy) {
+    LockScreenPrivacy.NORMAL -> stringResource(R.string.settings_privacy_normal)
+    LockScreenPrivacy.HIDE_ARTWORK -> stringResource(R.string.settings_privacy_hide_artwork)
+    LockScreenPrivacy.HIDE_METADATA -> stringResource(R.string.settings_privacy_hide_metadata)
+    LockScreenPrivacy.PRIVATE -> stringResource(R.string.settings_privacy_private)
 }

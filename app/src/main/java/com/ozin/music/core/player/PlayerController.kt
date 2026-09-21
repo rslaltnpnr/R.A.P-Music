@@ -14,11 +14,15 @@ import com.ozin.music.core.data.repository.ProblemFileRepository
 import com.ozin.music.core.data.repository.SongRepository
 import com.ozin.music.core.domain.AbRepeat
 import com.ozin.music.core.domain.AbRepeatState
+import com.ozin.music.core.domain.ArtworkResolver
+import com.ozin.music.core.domain.ArtworkSource
 import com.ozin.music.core.domain.PlaybackSpeed
 import com.ozin.music.core.domain.RatingValidator
 import com.ozin.music.core.remote.RemoteAudioFile
 import com.ozin.music.core.remote.RemoteMusicSource
 import com.ozin.music.core.remote.RemoteServerConfig
+import com.ozin.music.core.settings.AppSettings
+import com.ozin.music.core.settings.SettingsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -43,6 +47,9 @@ data class PlaybackUiState(
     val isConnected: Boolean = false,
     val playbackSpeed: Float = 1f,
     val abRepeat: AbRepeatState = AbRepeatState(),
+    /** Which tier resolved artwork for the current song, surfaced to the
+     * Debug screen (item 9) straight from the real resolver path. */
+    val currentArtworkSource: ArtworkSource? = null,
 )
 
 /**
@@ -56,6 +63,8 @@ class PlayerController @Inject constructor(
     @ApplicationContext private val context: Context,
     private val songRepository: SongRepository,
     private val problemFileRepository: ProblemFileRepository,
+    private val artworkResolver: ArtworkResolver,
+    private val settingsRepository: SettingsRepository,
 ) {
     private val scope = CoroutineScope(Dispatchers.Main.immediate)
     private var controller: MediaController? = null
@@ -64,6 +73,17 @@ class PlayerController @Inject constructor(
     val state: StateFlow<PlaybackUiState> = _state.asStateFlow()
 
     private val songCache = LinkedHashMap<Long, Song>()
+
+    /** Latest settings snapshot, kept current by a background collector so
+     * artwork/privacy resolution never has to block on a suspend read from
+     * the hot media-item-building path. */
+    @Volatile private var latestSettings = AppSettings()
+
+    init {
+        scope.launch {
+            settingsRepository.settings.collect { latestSettings = it }
+        }
+    }
 
     fun connect() {
         if (controller != null) return
@@ -90,11 +110,38 @@ class PlayerController @Inject constructor(
     fun playSongs(songs: List<Song>, startIndex: Int) {
         val ctrl = controller ?: return
         songs.forEach { songCache[it.id] = it }
-        val items = songs.map { it.toMediaItem() }
-        ctrl.setMediaItems(items, startIndex, 0L)
-        ctrl.prepare()
-        ctrl.play()
+        val safeIndex = startIndex.coerceIn(0, (songs.size - 1).coerceAtLeast(0))
+        scope.launch {
+            // Fast path: get playback started immediately with lightweight,
+            // synchronous artwork (a direct MediaStore URI, which Media3/Coil
+            // load lazily — no I/O here) so a big playlist never blocks
+            // playback while every song's embedded art is being extracted.
+            val fastItems = songs.map { it.toFastMediaItem() }
+            ctrl.setMediaItems(fastItems, safeIndex, 0L)
+            ctrl.prepare()
+            ctrl.play()
+            // Then resolve full artwork (embedded ID3 art, quality tiers,
+            // privacy enforcement) per song and patch each MediaItem in
+            // place, starting with the one actually playing.
+            val order = (songs.indices).sortedBy { index -> kotlin.math.abs(index - safeIndex) }
+            for (index in order) {
+                val ctrlNow = controller ?: return@launch
+                if (index >= ctrlNow.mediaItemCount) continue
+                val resolved = songs[index].toMediaItem()
+                if (index < ctrlNow.mediaItemCount) {
+                    ctrlNow.replaceMediaItem(index, resolved)
+                }
+                if (index == ctrlNow.currentMediaItemIndex) {
+                    _state.value = _state.value.copy(currentArtworkSource = lastResolvedSource)
+                }
+            }
+        }
     }
+
+    /** Set by [Song.toMediaItem] right after resolving artwork for the
+     * currently-playing song, so [playSongs] can surface it in [state]
+     * without a second, parallel resolution pass. */
+    @Volatile private var lastResolvedSource: ArtworkSource? = null
 
     /**
      * Plays a browsed remote (WebDAV) directory listing through the exact
@@ -183,13 +230,24 @@ class PlayerController @Inject constructor(
         val ctrl = controller ?: return
         songCache[song.id] = song
         val insertIndex = (ctrl.currentMediaItemIndex + 1).coerceIn(0, ctrl.mediaItemCount)
-        ctrl.addMediaItem(insertIndex, song.toMediaItem())
+        ctrl.addMediaItem(insertIndex, song.toFastMediaItem())
+        scope.launch {
+            val resolved = song.toMediaItem()
+            val ctrlNow = controller ?: return@launch
+            if (insertIndex < ctrlNow.mediaItemCount) ctrlNow.replaceMediaItem(insertIndex, resolved)
+        }
     }
 
     fun addToQueue(song: Song) {
         val ctrl = controller ?: return
         songCache[song.id] = song
-        ctrl.addMediaItem(song.toMediaItem())
+        val insertIndex = ctrl.mediaItemCount
+        ctrl.addMediaItem(song.toFastMediaItem())
+        scope.launch {
+            val resolved = song.toMediaItem()
+            val ctrlNow = controller ?: return@launch
+            if (insertIndex < ctrlNow.mediaItemCount) ctrlNow.replaceMediaItem(insertIndex, resolved)
+        }
     }
 
     fun removeFromQueue(index: Int) {
@@ -285,15 +343,34 @@ class PlayerController @Inject constructor(
      * access, such as the sleep timer's volume fade. */
     fun rawPlayer(): Player? = controller
 
-    private fun Song.toMediaItem(): MediaItem =
+    /** Fully resolves real artwork (embedded ID3 art, MediaStore album art or
+     * the default artwork), quality tier and lock-screen privacy for this
+     * song's [MediaItem]. Suspends on I/O — see [ArtworkResolver]. */
+    private suspend fun Song.toMediaItem(): MediaItem {
+        val settings = latestSettings
+        val item = MediaItemFactory.buildMediaItem(
+            context = context,
+            song = this,
+            artworkResolver = artworkResolver,
+            settings = settings,
+        )
+        lastResolvedSource = artworkResolver.resolve(
+            song = this,
+            quality = settings.artworkQuality,
+            privacy = settings.lockScreenPrivacy,
+            showArtwork = settings.lockScreenShowArtwork,
+        ).source
+        return item
+    }
+
+    /** Synchronous, no-I/O fallback used to start playback immediately: a
+     * plain MediaStore album-art URI (loaded lazily by Media3, same as
+     * before this change) rather than the fully resolved artwork. Replaced
+     * in place by [toMediaItem] shortly after via [MediaController.replaceMediaItem]. */
+    private fun Song.toFastMediaItem(): MediaItem =
         MediaItem.Builder()
             .setMediaId(id.toString())
-            .setUri(
-                android.content.ContentUris.withAppendedId(
-                    android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                    id,
-                )
-            )
+            .setUri(MediaItemFactory.contentUriFor(id))
             .setMediaMetadata(
                 MediaMetadata.Builder()
                     .setTitle(title)
@@ -311,6 +388,7 @@ class PlayerController @Inject constructor(
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             _state.value = _state.value.copy(abRepeat = AbRepeatState())
             syncFromPlayer()
+            refreshArtworkSourceForCurrent()
         }
 
         override fun onPlaybackStateChanged(playbackState: Int) {
@@ -369,6 +447,24 @@ class PlayerController @Inject constructor(
             queue = queue,
             currentIndex = ctrl.currentMediaItemIndex,
         )
+    }
+
+    /** Re-resolves (read-only, no MediaItem patching) which artwork tier
+     * would apply to the song now playing, so the Debug screen reflects
+     * reality after a skip/previous even though [playSongs]'s own patch loop
+     * only runs once per queue build. */
+    private fun refreshArtworkSourceForCurrent() {
+        val song = _state.value.currentSong ?: return
+        scope.launch {
+            val settings = latestSettings
+            val source = artworkResolver.resolve(
+                song = song,
+                quality = settings.artworkQuality,
+                privacy = settings.lockScreenPrivacy,
+                showArtwork = settings.lockScreenShowArtwork,
+            ).source
+            _state.value = _state.value.copy(currentArtworkSource = source)
+        }
     }
 
     fun tickPosition() {
