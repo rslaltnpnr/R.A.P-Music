@@ -27,6 +27,7 @@ class PlaybackService : MediaSessionService() {
     @Inject lateinit var effectsChain: EffectsChain
     @Inject lateinit var listeningStatsRecorder: ListeningStatsRecorder
     @Inject lateinit var crossfadeController: CrossfadeController
+    @Inject lateinit var playbackFader: PlaybackFader
     @Inject lateinit var settingsRepository: SettingsRepository
 
     private var mediaSession: MediaSession? = null
@@ -46,7 +47,9 @@ class PlaybackService : MediaSessionService() {
         exoPlayer.addListener(listeningStatsRecorder)
         exoPlayer.addListener(effectsChain)
         exoPlayer.addListener(crossfadeController)
+        exoPlayer.addListener(playbackFader)
         crossfadeController.attach(exoPlayer)
+        playbackFader.attach(exoPlayer)
 
         mediaSession = MediaSession.Builder(this, exoPlayer)
             .setCallback(OzinSessionCallback())
@@ -58,7 +61,18 @@ class PlaybackService : MediaSessionService() {
 
         settingsJob = serviceScope.launch {
             settingsRepository.settings.collect { settings ->
-                effectsChain.setNormalization(settings.normalizationEnabled)
+                effectsChain.enabled = settings.eqEnabled
+                effectsChain.setBassBoostStrength(settings.bassBoostStrength)
+                effectsChain.setVirtualizerStrength(settings.virtualizerStrength)
+                effectsChain.setLoudnessGainMb(
+                    if (settings.normalizationEnabled) maxOf(settings.loudnessGainMb, 500) else settings.loudnessGainMb
+                )
+                if (settings.eqPreset == com.ozin.music.core.domain.EqPresetId.CUSTOM && settings.eqCustomBands.isNotEmpty()) {
+                    effectsChain.applyCustomBands(settings.eqCustomBands.toIntArray())
+                } else {
+                    effectsChain.applyPreset(settings.eqPreset)
+                }
+                effectsChain.setPreampMb(settings.eqPreampMb)
             }
         }
     }
@@ -77,10 +91,12 @@ class PlaybackService : MediaSessionService() {
         settingsJob?.cancel()
         effectsChain.release()
         crossfadeController.release()
+        playbackFader.release()
         mediaSession?.run {
             player.removeListener(listeningStatsRecorder)
             player.removeListener(effectsChain)
             player.removeListener(crossfadeController)
+            player.removeListener(playbackFader)
             player.release()
             release()
         }

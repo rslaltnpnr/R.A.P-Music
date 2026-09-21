@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.PlaylistAdd
@@ -76,6 +77,7 @@ fun NowPlayingScreen(onBack: () -> Unit, viewModel: PlayerViewModel = hiltViewMo
     var accentColor by remember { mutableStateOf(Color(0xFF7C4DFF)) }
     var showQueue by remember { mutableStateOf(false) }
     var showAddToPlaylist by remember { mutableStateOf(false) }
+    var showMoreMenu by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(song?.albumId) {
@@ -117,8 +119,40 @@ fun NowPlayingScreen(onBack: () -> Unit, viewModel: PlayerViewModel = hiltViewMo
             IconButton(onClick = onBack) {
                 Icon(Icons.Filled.KeyboardArrowDown, contentDescription = "Collapse", tint = Color.White)
             }
-            IconButton(onClick = { showQueue = true }) {
-                Icon(Icons.Filled.QueueMusic, contentDescription = "Queue", tint = Color.White)
+            Row {
+                IconButton(onClick = { showQueue = true }) {
+                    Icon(Icons.Filled.QueueMusic, contentDescription = "Queue", tint = Color.White)
+                }
+                Box {
+                    IconButton(onClick = { showMoreMenu = true }) {
+                        Icon(Icons.Filled.MoreVert, contentDescription = "More options", tint = Color.White)
+                    }
+                    DropdownMenu(expanded = showMoreMenu, onDismissRequest = { showMoreMenu = false }) {
+                        Text(
+                            "Playback speed",
+                            style = MaterialTheme.typography.labelMedium,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                        )
+                        listOf(0.5f, 0.75f, 1f, 1.25f, 1.5f, 2f).forEach { speed ->
+                            DropdownMenuItem(
+                                text = { Text("${speed}x" + if (state.playbackSpeed == speed) " ✓" else "") },
+                                onClick = { viewModel.setPlaybackSpeed(speed) },
+                            )
+                        }
+                        Text(
+                            "A-B repeat",
+                            style = MaterialTheme.typography.labelMedium,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                        )
+                        DropdownMenuItem(text = { Text("Set point A") }, onClick = { viewModel.setAbPointA() })
+                        DropdownMenuItem(text = { Text("Set point B") }, onClick = { viewModel.setAbPointB() })
+                        DropdownMenuItem(
+                            text = { Text(if (state.abRepeat.enabled) "Disable A-B repeat" else "Enable A-B repeat") },
+                            onClick = { viewModel.setAbRepeatEnabled(!state.abRepeat.enabled) },
+                        )
+                        DropdownMenuItem(text = { Text("Clear A-B repeat") }, onClick = { viewModel.clearAbRepeat() })
+                    }
+                }
             }
         }
 

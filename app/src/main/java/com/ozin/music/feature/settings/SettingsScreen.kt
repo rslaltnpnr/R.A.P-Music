@@ -38,6 +38,18 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
         Text("Settings", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onBackground)
 
         SettingRow("Crossfade", settings.crossfadeEnabled, viewModel::toggleCrossfade)
+        if (settings.crossfadeEnabled) {
+            Text("Crossfade duration", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf(2, 3, 5, 8).forEach { seconds ->
+                    Button(onClick = { viewModel.setCrossfadeSeconds(seconds) }) {
+                        Text("${seconds}s" + if (settings.crossfadeSeconds == seconds) " ✓" else "")
+                    }
+                }
+            }
+            SettingRow("Smart crossfade (skip same album)", settings.smartCrossfadeEnabled, viewModel::toggleSmartCrossfade)
+        }
+        SettingRow("Fade in/out on play-pause", settings.fadeInOutEnabled, viewModel::toggleFadeInOut)
         SettingRow("Audio normalization", settings.normalizationEnabled, viewModel::toggleNormalization)
         SettingRow("Shuffle by default", settings.shuffleDefault, viewModel::toggleShuffleDefault)
         SettingRow("Compact mini player", settings.miniPlayerCompact, viewModel::toggleMiniPlayerCompact)

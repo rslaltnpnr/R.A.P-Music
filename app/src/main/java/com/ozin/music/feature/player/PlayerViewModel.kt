@@ -63,4 +63,10 @@ class PlayerViewModel @Inject constructor(
 
     fun removeFromQueue(index: Int) = playerController.removeFromQueue(index)
     fun moveInQueue(from: Int, to: Int) = playerController.moveInQueue(from, to)
+
+    fun setPlaybackSpeed(speed: Float) = playerController.setPlaybackSpeed(speed)
+    fun setAbPointA() = playerController.setAbPointA()
+    fun setAbPointB() = playerController.setAbPointB()
+    fun setAbRepeatEnabled(enabled: Boolean) = playerController.setAbRepeatEnabled(enabled)
+    fun clearAbRepeat() = playerController.clearAbRepeat()
 }
