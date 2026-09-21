@@ -33,6 +33,7 @@ import com.ozin.music.R
 import com.ozin.music.core.settings.LanguageOption
 import com.ozin.music.core.settings.RepeatMode
 import com.ozin.music.core.ui.theme.AccentColorOption
+import com.ozin.music.core.ui.theme.ThemeMode
 import com.ozin.music.core.ui.theme.ThemePreset
 
 @Composable
@@ -164,6 +165,22 @@ fun SettingsScreen(
             }
         }
 
+        Text(stringResource(R.string.settings_theme_mode), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            ThemeMode.entries.forEach { mode ->
+                val label = themeModeLabel(mode)
+                Button(onClick = { viewModel.setThemeMode(mode) }) {
+                    Text(
+                        if (settings.themeMode == mode) {
+                            stringResource(R.string.settings_theme_mode_selected_format, label)
+                        } else {
+                            label
+                        }
+                    )
+                }
+            }
+        }
+
         Text(stringResource(R.string.settings_accent_color), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             AccentColorOption.entries.forEach { option ->
@@ -220,6 +237,13 @@ private fun themePresetLabel(preset: ThemePreset): String = when (preset) {
     ThemePreset.NEON -> stringResource(R.string.settings_theme_neon)
     ThemePreset.RETRO -> stringResource(R.string.settings_theme_retro)
     ThemePreset.MINIMAL -> stringResource(R.string.settings_theme_minimal)
+}
+
+@Composable
+private fun themeModeLabel(mode: ThemeMode): String = when (mode) {
+    ThemeMode.DARK -> stringResource(R.string.settings_theme_mode_dark)
+    ThemeMode.LIGHT -> stringResource(R.string.settings_theme_mode_light)
+    ThemeMode.SYSTEM -> stringResource(R.string.settings_theme_mode_system)
 }
 
 @Composable

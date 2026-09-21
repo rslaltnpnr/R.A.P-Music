@@ -137,6 +137,31 @@
     <string name="settings_language_system">System default</string>
     <string name="settings_language_english">English</string>
     <string name="settings_language_turkish">Türkçe</string>
+    <string name="settings_theme_mode">Dark / light mode</string>
+    <string name="settings_theme_mode_dark">Dark</string>
+    <string name="settings_theme_mode_light">Light</string>
+    <string name="settings_theme_mode_system">System</string>
+    <string name="settings_theme_mode_selected_format">%1$s ✓</string>
+    <string name="eq_custom_presets">Custom presets</string>
+    <string name="eq_save_as">Save as…</string>
+    <string name="eq_save_preset_title">Save custom preset</string>
+    <string name="eq_preset_name_placeholder">Preset name</string>
+    <string name="eq_save">Save</string>
+    <string name="eq_cancel">Cancel</string>
+    <string name="eq_delete_preset">Delete preset</string>
+    <string name="eq_no_custom_presets">No saved custom presets yet.</string>
+    <string name="library_select">Select</string>
+    <string name="library_selected_count_format">%1$d selected</string>
+    <string name="library_add_selected_to_playlist">Add to playlist</string>
+    <string name="library_cancel_selection">Cancel selection</string>
+    <string name="library_add_to_playlist_title">Add to playlist</string>
+    <string name="library_batch_result_format">Added to %1$d song(s), failed for %2$d</string>
+    <string name="library_ok">OK</string>
+    <string name="playlist_select">Select</string>
+    <string name="playlist_selected_count_format">%1$d selected</string>
+    <string name="playlist_remove_selected">Remove from playlist</string>
+    <string name="playlist_cancel_selection">Cancel selection</string>
+    <string name="playlist_batch_remove_result_format">Removed %1$d song(s), failed for %2$d</string>
 
     <!-- DJ Mode -->
     <string name="dj_mode_title">DJ Mode</string>

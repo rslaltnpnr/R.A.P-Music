@@ -6,6 +6,7 @@ import com.ozin.music.core.ui.theme.ThemePreset
 import com.ozin.music.core.ui.theme.colorSchemeFor
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ThemePresetTest {
@@ -36,5 +37,30 @@ class ThemePresetTest {
         val scheme = colorSchemeFor(ThemePreset.DEFAULT_DARK, AccentColorOption.PURPLE.color)
         assertEquals(Color(0xFF0B0F19), scheme.background)
         assertNotEquals(Color(0xFF000000), scheme.background)
+    }
+
+    @Test
+    fun `default dark preset with darkMode false returns a light background`() {
+        val dark = colorSchemeFor(ThemePreset.DEFAULT_DARK, AccentColorOption.PURPLE.color, darkMode = true)
+        val light = colorSchemeFor(ThemePreset.DEFAULT_DARK, AccentColorOption.PURPLE.color, darkMode = false)
+        assertNotEquals(dark.background, light.background)
+        // A light scheme's background should be much brighter than the dark one.
+        assertTrue(light.background.red > dark.background.red)
+    }
+
+    @Test
+    fun `light default dark preset still threads the accent color through`() {
+        val scheme = colorSchemeFor(ThemePreset.DEFAULT_DARK, AccentColorOption.TEAL.color, darkMode = false)
+        assertEquals(AccentColorOption.TEAL.color, scheme.primary)
+    }
+
+    @Test
+    fun `dark-only presets ignore darkMode and stay dark`() {
+        val darkOnlyPresets = listOf(ThemePreset.AMOLED, ThemePreset.NEON, ThemePreset.RETRO, ThemePreset.MINIMAL)
+        darkOnlyPresets.forEach { preset ->
+            val whenDark = colorSchemeFor(preset, AccentColorOption.PURPLE.color, darkMode = true)
+            val whenLight = colorSchemeFor(preset, AccentColorOption.PURPLE.color, darkMode = false)
+            assertEquals(whenDark.background, whenLight.background)
+        }
     }
 }

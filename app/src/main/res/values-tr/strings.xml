@@ -135,6 +135,31 @@
     <string name="settings_language_system">Sistem varsayılanı</string>
     <string name="settings_language_english">English</string>
     <string name="settings_language_turkish">Türkçe</string>
+    <string name="settings_theme_mode">Koyu / açık mod</string>
+    <string name="settings_theme_mode_dark">Koyu</string>
+    <string name="settings_theme_mode_light">Açık</string>
+    <string name="settings_theme_mode_system">Sistem</string>
+    <string name="settings_theme_mode_selected_format">%1$s ✓</string>
+    <string name="eq_custom_presets">Özel ön ayarlar</string>
+    <string name="eq_save_as">Farklı kaydet…</string>
+    <string name="eq_save_preset_title">Özel ön ayarı kaydet</string>
+    <string name="eq_preset_name_placeholder">Ön ayar adı</string>
+    <string name="eq_save">Kaydet</string>
+    <string name="eq_cancel">İptal</string>
+    <string name="eq_delete_preset">Ön ayarı sil</string>
+    <string name="eq_no_custom_presets">Henüz kaydedilmiş özel ön ayar yok.</string>
+    <string name="library_select">Seç</string>
+    <string name="library_selected_count_format">%1$d seçildi</string>
+    <string name="library_add_selected_to_playlist">Çalma listesine ekle</string>
+    <string name="library_cancel_selection">Seçimi iptal et</string>
+    <string name="library_add_to_playlist_title">Çalma listesine ekle</string>
+    <string name="library_batch_result_format">%1$d şarkı eklendi, %2$d başarısız</string>
+    <string name="library_ok">Tamam</string>
+    <string name="playlist_select">Seç</string>
+    <string name="playlist_selected_count_format">%1$d seçildi</string>
+    <string name="playlist_remove_selected">Çalma listesinden kaldır</string>
+    <string name="playlist_cancel_selection">Seçimi iptal et</string>
+    <string name="playlist_batch_remove_result_format">%1$d şarkı kaldırıldı, %2$d başarısız</string>
 
     <!-- DJ Mode -->
     <string name="dj_mode_title">DJ Modu</string>
