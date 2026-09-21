@@ -24,7 +24,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.ozin.music.core.settings.RepeatMode
 
 @Composable
-fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
+fun SettingsScreen(
+    onOpenFolders: () -> Unit = {},
+    onOpenProblemFiles: () -> Unit = {},
+    onOpenDuplicates: () -> Unit = {},
+    viewModel: SettingsViewModel = hiltViewModel(),
+) {
     val settings by viewModel.settings.collectAsState()
     var folderInput by remember { mutableStateOf("") }
 
@@ -81,6 +86,13 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
                 modifier = Modifier.weight(1f, fill = true),
             )
             Button(onClick = { viewModel.addExcludedFolder(folderInput); folderInput = "" }) { Text("Exclude") }
+        }
+        Button(onClick = onOpenFolders) { Text("Manage folders") }
+
+        Text("Library management", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(onClick = onOpenProblemFiles) { Text("Problem files") }
+            Button(onClick = onOpenDuplicates) { Text("Find duplicates") }
         }
 
         Button(onClick = { viewModel.rescanLibrary() }) { Text("Rescan library") }

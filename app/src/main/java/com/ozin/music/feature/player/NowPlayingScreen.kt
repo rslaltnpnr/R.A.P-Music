@@ -67,7 +67,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NowPlayingScreen(onBack: () -> Unit, viewModel: PlayerViewModel = hiltViewModel()) {
+fun NowPlayingScreen(onBack: () -> Unit, onOpenLyrics: () -> Unit = {}, viewModel: PlayerViewModel = hiltViewModel()) {
     val state by viewModel.playbackState.collectAsState()
     val lyrics by viewModel.lyrics.collectAsState()
     val playlists by viewModel.playlists.collectAsState()
@@ -128,6 +128,10 @@ fun NowPlayingScreen(onBack: () -> Unit, viewModel: PlayerViewModel = hiltViewMo
                         Icon(Icons.Filled.MoreVert, contentDescription = "More options", tint = Color.White)
                     }
                     DropdownMenu(expanded = showMoreMenu, onDismissRequest = { showMoreMenu = false }) {
+                        DropdownMenuItem(
+                            text = { Text("Lyrics") },
+                            onClick = { showMoreMenu = false; onOpenLyrics() },
+                        )
                         Text(
                             "Playback speed",
                             style = MaterialTheme.typography.labelMedium,
