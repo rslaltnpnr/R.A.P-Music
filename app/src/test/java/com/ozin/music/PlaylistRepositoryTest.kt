@@ -80,4 +80,41 @@ class PlaylistRepositoryTest {
         assertTrue(repository.playlists.snapshot().none { it.id == id })
     }
 
+    @Test
+    fun `moveSong reorders a single item`() = runTest {
+        val id = repository.create("Move")
+        repository.addSong(id, 1)
+        repository.addSong(id, 2)
+        repository.addSong(id, 3)
+
+        repository.moveSong(id, 0, 2)
+        assertEquals(listOf(2L, 3L, 1L), repository.songsIn(id).snapshot().map { it.id })
+    }
+
+    @Test
+    fun `moveSong ignores out-of-range indices`() = runTest {
+        val id = repository.create("Move")
+        repository.addSong(id, 1)
+        repository.addSong(id, 2)
+
+        repository.moveSong(id, 0, 5)
+        assertEquals(listOf(1L, 2L), repository.songsIn(id).snapshot().map { it.id })
+    }
+
+    @Test
+    fun `duplicate copies name and songs into a new playlist`() = runTest {
+        val id = repository.create("Original")
+        repository.addSong(id, 1)
+        repository.addSong(id, 2)
+        val original = repository.playlists.snapshot().first { it.id == id }
+
+        val newId = repository.duplicate(original)
+
+        assertTrue(newId != id)
+        val copy = repository.playlists.snapshot().first { it.id == newId }
+        assertEquals("Original (copy)", copy.name)
+        assertEquals(listOf(1L, 2L), repository.songsIn(newId).snapshot().map { it.id })
+        // Original playlist is untouched.
+        assertEquals(listOf(1L, 2L), repository.songsIn(id).snapshot().map { it.id })
+    }
 }

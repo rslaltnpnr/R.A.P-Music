@@ -15,9 +15,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.PlaylistAdd
@@ -218,13 +220,28 @@ fun NowPlayingScreen(onBack: () -> Unit, viewModel: PlayerViewModel = hiltViewMo
                             .fillMaxWidth()
                             .padding(vertical = 8.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
                             text = queuedSong.title,
                             color = if (index == state.currentIndex) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.weight(1f),
+                            maxLines = 1,
                         )
+                        IconButton(
+                            onClick = { viewModel.moveInQueue(index, index - 1) },
+                            enabled = index > 0,
+                        ) {
+                            Icon(Icons.Filled.KeyboardArrowUp, contentDescription = "Move up")
+                        }
+                        IconButton(
+                            onClick = { viewModel.moveInQueue(index, index + 1) },
+                            enabled = index < state.queue.size - 1,
+                        ) {
+                            Icon(Icons.Filled.KeyboardArrowDown, contentDescription = "Move down")
+                        }
                         IconButton(onClick = { viewModel.removeFromQueue(index) }) {
-                            Icon(Icons.Filled.KeyboardArrowDown, contentDescription = "Remove")
+                            Icon(Icons.Filled.Close, contentDescription = "Remove")
                         }
                     }
                 }

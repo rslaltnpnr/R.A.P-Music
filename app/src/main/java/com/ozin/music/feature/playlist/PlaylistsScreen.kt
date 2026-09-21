@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FloatingActionButton
@@ -33,7 +34,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun PlaylistsScreen(viewModel: PlaylistViewModel = hiltViewModel()) {
+fun PlaylistsScreen(onPlaylistClick: (Long) -> Unit, viewModel: PlaylistViewModel = hiltViewModel()) {
     val playlists by viewModel.playlists.collectAsState()
     var showCreateDialog by remember { mutableStateOf(false) }
 
@@ -60,10 +61,14 @@ fun PlaylistsScreen(viewModel: PlaylistViewModel = hiltViewModel()) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .clickable { onPlaylistClick(playlist.id) }
                             .padding(horizontal = 16.dp, vertical = 12.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
-                        Text(playlist.name, color = MaterialTheme.colorScheme.onBackground)
+                        Text(playlist.name, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.weight(1f))
+                        IconButton(onClick = { viewModel.duplicate(playlist) }) {
+                            Icon(Icons.Filled.ContentCopy, contentDescription = "Duplicate", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
                         IconButton(onClick = { viewModel.delete(playlist) }) {
                             Icon(Icons.Filled.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
