@@ -21,9 +21,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.ozin.music.R
 import com.ozin.music.core.data.mediastore.MediaStoreScanner
 import com.ozin.music.core.data.model.Song
 import androidx.compose.ui.platform.LocalContext
@@ -47,21 +49,21 @@ fun HomeScreen(onSongClick: () -> Unit, viewModel: HomeViewModel = hiltViewModel
             )
         }
         if (state.recentlyPlayed.isNotEmpty()) {
-            item { HomeSection(title = "Recently played", songs = state.recentlyPlayed) { song -> viewModel.playSong(song, state.recentlyPlayed); onSongClick() } }
+            item { HomeSection(title = stringResource(R.string.home_recently_played), songs = state.recentlyPlayed) { song -> viewModel.playSong(song, state.recentlyPlayed); onSongClick() } }
         }
         if (state.recentlyAdded.isNotEmpty()) {
-            item { HomeSection(title = "Recently added", songs = state.recentlyAdded) { song -> viewModel.playSong(song, state.recentlyAdded); onSongClick() } }
+            item { HomeSection(title = stringResource(R.string.home_recently_added), songs = state.recentlyAdded) { song -> viewModel.playSong(song, state.recentlyAdded); onSongClick() } }
         }
         if (state.mostPlayed.isNotEmpty()) {
-            item { HomeSection(title = "Most played", songs = state.mostPlayed) { song -> viewModel.playSong(song, state.mostPlayed); onSongClick() } }
+            item { HomeSection(title = stringResource(R.string.home_most_played), songs = state.mostPlayed) { song -> viewModel.playSong(song, state.mostPlayed); onSongClick() } }
         }
         if (state.favorites.isNotEmpty()) {
-            item { HomeSection(title = "Favorites", songs = state.favorites) { song -> viewModel.playSong(song, state.favorites); onSongClick() } }
+            item { HomeSection(title = stringResource(R.string.home_favorites), songs = state.favorites) { song -> viewModel.playSong(song, state.favorites); onSongClick() } }
         }
         if (state.recentlyPlayed.isEmpty() && state.recentlyAdded.isEmpty()) {
             item {
                 Text(
-                    text = "Your library is empty. Add some music to your device to get started.",
+                    text = stringResource(R.string.home_empty_library),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

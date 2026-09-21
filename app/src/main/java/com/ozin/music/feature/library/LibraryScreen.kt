@@ -49,11 +49,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.ozin.music.R
 import com.ozin.music.core.data.mediastore.MediaStoreScanner
 import com.ozin.music.core.data.model.Song
+import com.ozin.music.core.domain.Mood
 import com.ozin.music.core.domain.MoodTagCodec
 import com.ozin.music.core.domain.SongGroup
 import com.ozin.music.core.domain.SortOrder
@@ -85,7 +88,7 @@ fun LibraryScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            placeholder = { Text("Search songs, artists, albums") },
+            placeholder = { Text(stringResource(R.string.library_search_placeholder)) },
             singleLine = true,
         )
 
@@ -94,7 +97,7 @@ fun LibraryScreen(
                 Tab(
                     selected = state.tab == tabValue,
                     onClick = { viewModel.selectTab(tabValue) },
-                    text = { Text(tabValue.name.lowercase().replaceFirstChar { it.uppercase() }) },
+                    text = { Text(libraryTabLabel(tabValue)) },
                 )
             }
         }
@@ -103,7 +106,7 @@ fun LibraryScreen(
             // Grouped bucket list (Albums/Artists/Folders/Genres).
             if (state.groups.isEmpty()) {
                 Text(
-                    text = "Nothing found.",
+                    text = stringResource(R.string.library_nothing_found),
                     modifier = Modifier.padding(24.dp),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -126,7 +129,7 @@ fun LibraryScreen(
                 verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
             ) {
                 IconButton(onClick = { viewModel.clearGroupSelection() }) {
-                    Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                    Icon(Icons.Filled.ArrowBack, contentDescription = stringResource(R.string.library_back))
                 }
                 Column {
                     Text(group.title, color = MaterialTheme.colorScheme.onBackground)
@@ -142,14 +145,14 @@ fun LibraryScreen(
             ) {
                 Box {
                     Text(
-                        text = "Sort: ${state.sortOrder.name}",
+                        text = stringResource(R.string.library_sort_format, sortOrderLabel(state.sortOrder)),
                         modifier = Modifier.clickable { sortMenuOpen = true },
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     DropdownMenu(expanded = sortMenuOpen, onDismissRequest = { sortMenuOpen = false }) {
                         SortOrder.entries.forEach { order ->
                             DropdownMenuItem(
-                                text = { Text(order.name) },
+                                text = { Text(sortOrderLabel(order)) },
                                 onClick = { viewModel.selectSort(order); sortMenuOpen = false },
                             )
                         }
@@ -158,7 +161,7 @@ fun LibraryScreen(
                 IconButton(onClick = viewModel::toggleViewMode) {
                     Icon(
                         imageVector = if (state.viewMode == ViewMode.LIST) Icons.Filled.GridView else Icons.Filled.ViewList,
-                        contentDescription = "Toggle view",
+                        contentDescription = stringResource(R.string.library_toggle_view),
                     )
                 }
             }
@@ -166,7 +169,7 @@ fun LibraryScreen(
 
         if (state.songs.isEmpty()) {
             Text(
-                text = "No songs found.",
+                text = stringResource(R.string.library_no_songs_found),
                 modifier = Modifier.padding(24.dp),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -284,7 +287,7 @@ private fun SongRow(
         IconButton(onClick = onFavorite) {
             Icon(
                 imageVector = if (song.isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                contentDescription = "Favorite",
+                contentDescription = stringResource(R.string.library_favorite),
                 tint = if (song.isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
@@ -324,7 +327,7 @@ private fun SongActionSheet(
                 verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
             ) {
                 Icon(Icons.Filled.Edit, contentDescription = null)
-                Text("Edit song info", modifier = Modifier.padding(start = 16.dp))
+                Text(stringResource(R.string.library_edit_song_info), modifier = Modifier.padding(start = 16.dp))
             }
             Row(
                 modifier = Modifier
@@ -334,7 +337,7 @@ private fun SongActionSheet(
                 verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
             ) {
                 Icon(Icons.Filled.Folder, contentDescription = null)
-                Text("File management", modifier = Modifier.padding(start = 16.dp))
+                Text(stringResource(R.string.library_file_management), modifier = Modifier.padding(start = 16.dp))
             }
 
             Row(
@@ -345,7 +348,7 @@ private fun SongActionSheet(
                 verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
             ) {
                 Icon(Icons.Filled.SkipNext, contentDescription = null)
-                Text("Play next", modifier = Modifier.padding(start = 16.dp))
+                Text(stringResource(R.string.library_play_next), modifier = Modifier.padding(start = 16.dp))
             }
             Row(
                 modifier = Modifier
@@ -355,7 +358,7 @@ private fun SongActionSheet(
                 verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
             ) {
                 Icon(Icons.Filled.QueueMusic, contentDescription = null)
-                Text("Add to queue", modifier = Modifier.padding(start = 16.dp))
+                Text(stringResource(R.string.library_add_to_queue), modifier = Modifier.padding(start = 16.dp))
             }
             Row(
                 modifier = Modifier
@@ -365,17 +368,17 @@ private fun SongActionSheet(
                 verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
             ) {
                 Icon(Icons.Filled.Recommend, contentDescription = null)
-                Text("Similar songs", modifier = Modifier.padding(start = 16.dp))
+                Text(stringResource(R.string.library_similar_songs), modifier = Modifier.padding(start = 16.dp))
             }
 
             Text(
-                "Add to playlist",
+                stringResource(R.string.library_add_to_playlist),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 8.dp),
             )
             if (playlists.isEmpty()) {
-                Text("No playlists yet. Create one from the Lists tab.", modifier = Modifier.padding(vertical = 8.dp))
+                Text(stringResource(R.string.library_no_playlists_yet), modifier = Modifier.padding(vertical = 8.dp))
             }
             playlists.forEach { playlist ->
                 Row(
@@ -411,11 +414,43 @@ private fun MoodChipRow(moodTagsRaw: String) {
                     .padding(horizontal = 6.dp, vertical = 2.dp),
             ) {
                 Text(
-                    text = mood.name.lowercase().replaceFirstChar { it.uppercase() },
+                    text = moodLabel(mood),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
     }
+}
+
+@Composable
+private fun moodLabel(mood: Mood): String = when (mood) {
+    Mood.ENERGETIC -> stringResource(R.string.library_mood_energetic)
+    Mood.CALM -> stringResource(R.string.library_mood_calm)
+    Mood.SAD -> stringResource(R.string.library_mood_sad)
+    Mood.HAPPY -> stringResource(R.string.library_mood_happy)
+    Mood.DARK -> stringResource(R.string.library_mood_dark)
+    Mood.WORKOUT -> stringResource(R.string.library_mood_workout)
+    Mood.NIGHT -> stringResource(R.string.library_mood_night)
+}
+
+@Composable
+private fun sortOrderLabel(order: SortOrder): String = when (order) {
+    SortOrder.TITLE_ASC -> stringResource(R.string.library_sort_title_asc)
+    SortOrder.TITLE_DESC -> stringResource(R.string.library_sort_title_desc)
+    SortOrder.DATE_ADDED -> stringResource(R.string.library_sort_date_added)
+    SortOrder.MOST_PLAYED -> stringResource(R.string.library_sort_most_played)
+    SortOrder.DURATION -> stringResource(R.string.library_sort_duration)
+    SortOrder.ARTIST -> stringResource(R.string.library_sort_artist)
+    SortOrder.ALBUM -> stringResource(R.string.library_sort_album)
+}
+
+@Composable
+private fun libraryTabLabel(tab: LibraryTab): String = when (tab) {
+    LibraryTab.SONGS -> stringResource(R.string.library_tab_songs)
+    LibraryTab.ALBUMS -> stringResource(R.string.library_tab_albums)
+    LibraryTab.ARTISTS -> stringResource(R.string.library_tab_artists)
+    LibraryTab.FOLDERS -> stringResource(R.string.library_tab_folders)
+    LibraryTab.GENRES -> stringResource(R.string.library_tab_genres)
+    LibraryTab.FAVORITES -> stringResource(R.string.library_tab_favorites)
 }

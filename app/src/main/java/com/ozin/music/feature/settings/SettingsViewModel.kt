@@ -3,9 +3,12 @@ package com.ozin.music.feature.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ozin.music.core.data.repository.SongRepository
+import androidx.appcompat.app.AppCompatDelegate
 import com.ozin.music.core.settings.AppSettings
+import com.ozin.music.core.settings.LanguageOption
 import com.ozin.music.core.settings.RepeatMode
 import com.ozin.music.core.settings.SettingsRepository
+import com.ozin.music.core.settings.toLocaleListCompat
 import com.ozin.music.core.ui.theme.AccentColorOption
 import com.ozin.music.core.ui.theme.ThemePreset
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -88,5 +91,13 @@ class SettingsViewModel @Inject constructor(
 
     fun setAccentColorOption(option: AccentColorOption) {
         viewModelScope.launch { settingsRepository.setAccentColorOption(option) }
+    }
+
+    /** Persists the chosen language and applies it immediately via
+     * [AppCompatDelegate], so the change takes effect without needing an app
+     * restart (AppCompat recreates activities that need recomposing). */
+    fun setLanguageOption(option: LanguageOption) {
+        viewModelScope.launch { settingsRepository.setLanguageOption(option) }
+        AppCompatDelegate.setApplicationLocales(option.toLocaleListCompat())
     }
 }

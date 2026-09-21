@@ -1,6 +1,7 @@
 package com.ozin.music.core.settings
 
 import android.content.Context
+import androidx.core.os.LocaleListCompat
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
@@ -19,6 +20,20 @@ import javax.inject.Singleton
 private val Context.dataStore by preferencesDataStore(name = "ozin_settings")
 
 enum class RepeatMode { OFF, ALL, ONE }
+
+/** User-selectable in-app language override. [SYSTEM] follows the device
+ * language (the default); the others force a specific app language via
+ * [androidx.appcompat.app.AppCompatDelegate.setApplicationLocales]. */
+enum class LanguageOption { SYSTEM, ENGLISH, TURKISH }
+
+/** Maps a [LanguageOption] to the [LocaleListCompat] that should be passed to
+ * [androidx.appcompat.app.AppCompatDelegate.setApplicationLocales]. [LanguageOption.SYSTEM]
+ * maps to an empty list, which tells AppCompat to defer to the device/system locale. */
+fun LanguageOption.toLocaleListCompat(): LocaleListCompat = when (this) {
+    LanguageOption.SYSTEM -> LocaleListCompat.getEmptyLocaleList()
+    LanguageOption.ENGLISH -> LocaleListCompat.forLanguageTags("en")
+    LanguageOption.TURKISH -> LocaleListCompat.forLanguageTags("tr")
+}
 
 /** Alternate Now Playing visual modes selectable alongside the original
  * default view (Phase 9). */
@@ -47,6 +62,7 @@ data class AppSettings(
     val themePreset: ThemePreset = ThemePreset.DEFAULT_DARK,
     val accentColorOption: AccentColorOption = AccentColorOption.PURPLE,
     val nowPlayingVisualMode: NowPlayingVisualMode = NowPlayingVisualMode.DEFAULT,
+    val languageOption: LanguageOption = LanguageOption.SYSTEM,
 )
 
 @Singleton
@@ -74,6 +90,7 @@ class SettingsRepository @Inject constructor(
         val THEME_PRESET = stringPreferencesKey("theme_preset")
         val ACCENT_COLOR = stringPreferencesKey("accent_color")
         val NOW_PLAYING_VISUAL_MODE = stringPreferencesKey("now_playing_visual_mode")
+        val LANGUAGE_OPTION = stringPreferencesKey("language_option")
     }
 
     val settings: Flow<AppSettings> = context.dataStore.data.map { prefs ->
@@ -111,6 +128,9 @@ class SettingsRepository @Inject constructor(
                     prefs[Keys.NOW_PLAYING_VISUAL_MODE] ?: NowPlayingVisualMode.DEFAULT.name
                 )
             }.getOrDefault(NowPlayingVisualMode.DEFAULT),
+            languageOption = runCatching {
+                LanguageOption.valueOf(prefs[Keys.LANGUAGE_OPTION] ?: LanguageOption.SYSTEM.name)
+            }.getOrDefault(LanguageOption.SYSTEM),
         )
     }
 
@@ -203,5 +223,9 @@ class SettingsRepository @Inject constructor(
 
     suspend fun setNowPlayingVisualMode(mode: NowPlayingVisualMode) {
         context.dataStore.edit { it[Keys.NOW_PLAYING_VISUAL_MODE] = mode.name }
+    }
+
+    suspend fun setLanguageOption(option: LanguageOption) {
+        context.dataStore.edit { it[Keys.LANGUAGE_OPTION] = option.name }
     }
 }

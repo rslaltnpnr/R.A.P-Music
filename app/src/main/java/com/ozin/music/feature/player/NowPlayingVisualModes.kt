@@ -28,8 +28,10 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
+import com.ozin.music.R
 import com.ozin.music.core.domain.VisualizerMath
 import androidx.compose.runtime.withFrameNanos
 import com.ozin.music.core.settings.NowPlayingVisualMode
@@ -130,7 +132,7 @@ fun VinylVisualMode(
         ) {
             Image(
                 painter = rememberAsyncImagePainter(albumArtUri),
-                contentDescription = "Album art",
+                contentDescription = stringResource(R.string.player_album_art),
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(28.dp)
@@ -234,9 +236,10 @@ fun NowPlayingModeSwitcher(
     }
 }
 
+@Composable
 private fun modeLabel(mode: NowPlayingVisualMode): String = when (mode) {
-    NowPlayingVisualMode.DEFAULT -> "Default"
-    NowPlayingVisualMode.VINYL -> "Vinyl"
-    NowPlayingVisualMode.CASSETTE -> "Cassette"
-    NowPlayingVisualMode.VISUALIZER -> "Visualizer"
+    NowPlayingVisualMode.DEFAULT -> stringResource(R.string.player_mode_default)
+    NowPlayingVisualMode.VINYL -> stringResource(R.string.player_mode_vinyl)
+    NowPlayingVisualMode.CASSETTE -> stringResource(R.string.player_mode_cassette)
+    NowPlayingVisualMode.VISUALIZER -> stringResource(R.string.player_mode_visualizer)
 }
