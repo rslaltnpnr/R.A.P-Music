@@ -17,10 +17,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -162,6 +165,7 @@ fun DjModeScreen(onExit: () -> Unit) {
         modifier = Modifier
             .fillMaxSize()
             .background(DjColors.panelBg)
+            .windowInsetsPadding(WindowInsets.safeDrawing)
             .padding(8.dp),
     ) {
         DjTopBar(
@@ -274,11 +278,11 @@ private fun DjTopBar(
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Text(stringResourceCompat(R.string.dj_mode_title), color = DjColors.textPrimary, fontWeight = FontWeight.Bold)
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(stringResourceCompat(R.string.dj_basic), color = DjColors.textSecondary)
             Switch(checked = proMode, onCheckedChange = onProModeChange)
             Text(stringResourceCompat(R.string.dj_pro), color = DjColors.textSecondary)
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(4.dp))
             if (proMode) {
                 TextButton(onClick = onAutomixClick) {
                     Text(
@@ -296,6 +300,7 @@ private fun DjTopBar(
                     }
                 }
             }
+            Spacer(modifier = Modifier.width(4.dp))
             IconButton(onClick = onExit) {
                 Icon(Icons.Filled.Close, contentDescription = stringResourceCompat(R.string.dj_close), tint = DjColors.textSecondary)
             }

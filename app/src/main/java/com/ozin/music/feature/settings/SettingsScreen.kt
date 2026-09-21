@@ -41,7 +41,11 @@ import com.ozin.music.core.settings.ArtworkQuality
 import com.ozin.music.core.settings.LanguageOption
 import com.ozin.music.core.settings.LockScreenPrivacy
 import com.ozin.music.core.settings.RepeatMode
+import com.ozin.music.core.ui.components.ChoiceChip
+import com.ozin.music.core.ui.components.SectionHeader
+import com.ozin.music.core.ui.components.SettingsCard
 import com.ozin.music.core.ui.theme.AccentColorOption
+import com.ozin.music.core.ui.theme.Spacing
 import com.ozin.music.core.ui.theme.ThemeMode
 import com.ozin.music.core.ui.theme.ThemePreset
 
@@ -87,209 +91,221 @@ fun SettingsScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
-            .padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+            .padding(Spacing.xl),
+        verticalArrangement = Arrangement.spacedBy(Spacing.xl),
     ) {
         Text(stringResource(R.string.settings_title), style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onBackground)
 
-        SettingRow(stringResource(R.string.settings_crossfade), settings.crossfadeEnabled, viewModel::toggleCrossfade)
-        if (settings.crossfadeEnabled) {
-            Text(stringResource(R.string.settings_crossfade_duration), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf(2, 3, 5, 8).forEach { seconds ->
-                    Button(onClick = { viewModel.setCrossfadeSeconds(seconds) }) {
-                        Text(
-                            if (settings.crossfadeSeconds == seconds) {
-                                stringResource(R.string.settings_seconds_selected_format, seconds)
-                            } else {
-                                stringResource(R.string.settings_seconds_format, seconds)
-                            }
+        // --- Playback ---
+        SectionHeader(title = stringResource(R.string.settings_crossfade))
+        SettingsCard {
+            SettingRow(stringResource(R.string.settings_crossfade), settings.crossfadeEnabled, viewModel::toggleCrossfade)
+            if (settings.crossfadeEnabled) {
+                Text(stringResource(R.string.settings_crossfade_duration), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
+                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                    listOf(2, 3, 5, 8).forEach { seconds ->
+                        ChoiceChip(
+                            label = stringResource(R.string.settings_seconds_format, seconds),
+                            selected = settings.crossfadeSeconds == seconds,
+                            onClick = { viewModel.setCrossfadeSeconds(seconds) },
                         )
                     }
                 }
+                SettingRow(stringResource(R.string.settings_smart_crossfade), settings.smartCrossfadeEnabled, viewModel::toggleSmartCrossfade)
             }
-            SettingRow(stringResource(R.string.settings_smart_crossfade), settings.smartCrossfadeEnabled, viewModel::toggleSmartCrossfade)
-        }
-        SettingRow(stringResource(R.string.settings_fade_in_out), settings.fadeInOutEnabled, viewModel::toggleFadeInOut)
-        SettingRow(stringResource(R.string.settings_audio_normalization), settings.normalizationEnabled, viewModel::toggleNormalization)
-        SettingRow(stringResource(R.string.settings_shuffle_default), settings.shuffleDefault, viewModel::toggleShuffleDefault)
-        SettingRow(stringResource(R.string.settings_compact_mini_player), settings.miniPlayerCompact, viewModel::toggleMiniPlayerCompact)
+            SettingRow(stringResource(R.string.settings_fade_in_out), settings.fadeInOutEnabled, viewModel::toggleFadeInOut)
+            SettingRow(stringResource(R.string.settings_audio_normalization), settings.normalizationEnabled, viewModel::toggleNormalization)
+            SettingRow(stringResource(R.string.settings_shuffle_default), settings.shuffleDefault, viewModel::toggleShuffleDefault)
+            SettingRow(stringResource(R.string.settings_compact_mini_player), settings.miniPlayerCompact, viewModel::toggleMiniPlayerCompact)
 
-        Text(stringResource(R.string.settings_default_repeat_mode), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            RepeatMode.entries.forEach { mode ->
-                val label = repeatModeLabel(mode)
-                Button(onClick = { viewModel.setRepeatDefault(mode) }) {
-                    Text(
-                        if (settings.repeatDefault == mode) {
-                            stringResource(R.string.settings_repeat_mode_selected_format, label)
-                        } else {
-                            label
-                        }
+            Text(stringResource(R.string.settings_default_repeat_mode), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                RepeatMode.entries.forEach { mode ->
+                    ChoiceChip(
+                        label = repeatModeLabel(mode),
+                        selected = settings.repeatDefault == mode,
+                        onClick = { viewModel.setRepeatDefault(mode) },
                     )
                 }
             }
         }
 
-        Text(stringResource(R.string.settings_excluded_folders), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
-        settings.excludedFolders.forEach { folder ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Text(folder, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 4.dp))
-                Button(onClick = { viewModel.removeExcludedFolder(folder) }) { Text(stringResource(R.string.settings_remove)) }
-            }
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedTextField(
-                value = folderInput,
-                onValueChange = { folderInput = it },
-                placeholder = { Text(stringResource(R.string.settings_folder_path_placeholder)) },
-                modifier = Modifier.weight(1f, fill = true),
-            )
-            Button(onClick = { viewModel.addExcludedFolder(folderInput); folderInput = "" }) { Text(stringResource(R.string.settings_exclude)) }
-        }
-        Button(onClick = onOpenFolders) { Text(stringResource(R.string.settings_manage_folders)) }
-
-        Text(stringResource(R.string.settings_library_management), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(onClick = onOpenProblemFiles) { Text(stringResource(R.string.settings_problem_files)) }
-            Button(onClick = onOpenDuplicates) { Text(stringResource(R.string.settings_find_duplicates)) }
-        }
-
-        Button(onClick = { viewModel.rescanLibrary() }) { Text(stringResource(R.string.settings_rescan_library)) }
-
-        Text(stringResource(R.string.settings_personalization), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
-        Button(onClick = onOpenStats) { Text(stringResource(R.string.settings_listening_statistics)) }
-        Column {
-            Button(onClick = { viewModel.computeMoodTags() }) { Text(stringResource(R.string.settings_compute_mood_tags)) }
-            Text(
-                stringResource(R.string.settings_mood_tags_description),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-
-        Text(stringResource(R.string.settings_smart_search), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
-        Button(onClick = onOpenSmartSearch) { Text(stringResource(R.string.settings_search_by_keyword)) }
-
-        Text(stringResource(R.string.settings_car_bluetooth), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
-        Button(onClick = onOpenBluetoothDevices) { Text(stringResource(R.string.settings_bluetooth_device_profiles)) }
-
-        Text(stringResource(R.string.nav_dj_mode), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
-        Button(onClick = onOpenDjMode) { Text(stringResource(R.string.settings_open_dj_mode)) }
-
-        Text(stringResource(R.string.settings_network), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
-        Button(onClick = onOpenRemoteServers) { Text(stringResource(R.string.settings_network_servers)) }
-
-        Text(stringResource(R.string.settings_theme), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            ThemePreset.entries.forEach { preset ->
-                val label = themePresetLabel(preset)
-                Button(onClick = { viewModel.setThemePreset(preset) }) {
-                    Text(
-                        if (settings.themePreset == preset) {
-                            stringResource(R.string.settings_theme_selected_format, label)
-                        } else {
-                            label
-                        }
-                    )
+        // --- Library ---
+        SectionHeader(title = stringResource(R.string.settings_library_management))
+        SettingsCard {
+            Text(stringResource(R.string.settings_excluded_folders), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
+            settings.excludedFolders.forEach { folder ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text(folder, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = Spacing.xs))
+                    Button(onClick = { viewModel.removeExcludedFolder(folder) }) { Text(stringResource(R.string.settings_remove)) }
                 }
             }
-        }
-
-        Text(stringResource(R.string.settings_theme_mode), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            ThemeMode.entries.forEach { mode ->
-                val label = themeModeLabel(mode)
-                Button(onClick = { viewModel.setThemeMode(mode) }) {
-                    Text(
-                        if (settings.themeMode == mode) {
-                            stringResource(R.string.settings_theme_mode_selected_format, label)
-                        } else {
-                            label
-                        }
-                    )
-                }
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                OutlinedTextField(
+                    value = folderInput,
+                    onValueChange = { folderInput = it },
+                    placeholder = { Text(stringResource(R.string.settings_folder_path_placeholder)) },
+                    modifier = Modifier.weight(1f, fill = true),
+                )
+                Button(onClick = { viewModel.addExcludedFolder(folderInput); folderInput = "" }) { Text(stringResource(R.string.settings_exclude)) }
             }
+            Button(onClick = onOpenFolders) { Text(stringResource(R.string.settings_manage_folders)) }
+
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                Button(onClick = onOpenProblemFiles) { Text(stringResource(R.string.settings_problem_files)) }
+                Button(onClick = onOpenDuplicates) { Text(stringResource(R.string.settings_find_duplicates)) }
+            }
+            Button(onClick = { viewModel.rescanLibrary() }) { Text(stringResource(R.string.settings_rescan_library)) }
         }
 
-        Text(stringResource(R.string.settings_accent_color), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            AccentColorOption.entries.forEach { option ->
-                val selected = settings.accentColorOption == option
-                Box(
-                    modifier = Modifier
-                        .size(36.dp)
-                        .clip(CircleShape)
-                        .background(option.color)
-                        .border(
-                            width = if (selected) 3.dp else 0.dp,
-                            color = if (selected) Color.White else Color.Transparent,
-                            shape = CircleShape,
-                        )
-                        .clickable { viewModel.setAccentColorOption(option) },
+        // --- Personalization ---
+        SectionHeader(title = stringResource(R.string.settings_personalization))
+        SettingsCard {
+            Button(onClick = onOpenStats) { Text(stringResource(R.string.settings_listening_statistics)) }
+            Column {
+                Button(onClick = { viewModel.computeMoodTags() }) { Text(stringResource(R.string.settings_compute_mood_tags)) }
+                Text(
+                    stringResource(R.string.settings_mood_tags_description),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-        }
 
-        Text(stringResource(R.string.settings_language), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            LanguageOption.entries.forEach { option ->
-                val selected = settings.languageOption == option
-                Button(onClick = { viewModel.setLanguageOption(option) }) {
-                    Text(if (selected) "✓ ${languageOptionLabel(option)}" else languageOptionLabel(option))
+            Text(stringResource(R.string.settings_theme), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                ThemePreset.entries.forEach { preset ->
+                    ChoiceChip(
+                        label = themePresetLabel(preset),
+                        selected = settings.themePreset == preset,
+                        onClick = { viewModel.setThemePreset(preset) },
+                    )
+                }
+            }
+
+            Text(stringResource(R.string.settings_theme_mode), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                ThemeMode.entries.forEach { mode ->
+                    ChoiceChip(
+                        label = themeModeLabel(mode),
+                        selected = settings.themeMode == mode,
+                        onClick = { viewModel.setThemeMode(mode) },
+                    )
+                }
+            }
+
+            Text(stringResource(R.string.settings_accent_color), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.md)) {
+                AccentColorOption.entries.forEach { option ->
+                    val selected = settings.accentColorOption == option
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(option.color)
+                            .border(
+                                width = if (selected) 3.dp else 0.dp,
+                                color = if (selected) Color.White else Color.Transparent,
+                                shape = CircleShape,
+                            )
+                            .clickable { viewModel.setAccentColorOption(option) },
+                    )
+                }
+            }
+
+            Text(stringResource(R.string.settings_language), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                LanguageOption.entries.forEach { option ->
+                    ChoiceChip(
+                        label = languageOptionLabel(option),
+                        selected = settings.languageOption == option,
+                        onClick = { viewModel.setLanguageOption(option) },
+                    )
                 }
             }
         }
 
-        Text(stringResource(R.string.settings_lock_screen), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
-        SettingRow(
-            stringResource(R.string.settings_lock_screen_show_artwork),
-            settings.lockScreenShowArtwork,
-            viewModel::toggleLockScreenShowArtwork,
-        )
-        SettingRow(
-            stringResource(R.string.settings_lock_screen_show_media_info),
-            settings.lockScreenShowMediaInfo,
-            viewModel::toggleLockScreenShowMediaInfo,
-        )
-        SettingRow(
-            stringResource(R.string.settings_now_playing_gestures),
-            settings.nowPlayingGesturesEnabled,
-            viewModel::toggleNowPlayingGestures,
-        )
-        SettingRow(
-            stringResource(R.string.settings_shake_to_pause),
-            settings.shakeToPauseEnabled,
-            viewModel::toggleShakeToPause,
-        )
+        // --- Lock Screen & Privacy ---
+        SectionHeader(title = stringResource(R.string.settings_lock_screen))
+        SettingsCard {
+            SettingRow(
+                stringResource(R.string.settings_lock_screen_show_artwork),
+                settings.lockScreenShowArtwork,
+                viewModel::toggleLockScreenShowArtwork,
+            )
+            SettingRow(
+                stringResource(R.string.settings_lock_screen_show_media_info),
+                settings.lockScreenShowMediaInfo,
+                viewModel::toggleLockScreenShowMediaInfo,
+            )
 
-        Text(stringResource(R.string.settings_artwork_quality), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            ArtworkQuality.entries.forEach { quality ->
-                val selected = settings.artworkQuality == quality
-                Button(onClick = { viewModel.setArtworkQuality(quality) }) {
-                    Text(if (selected) "✓ ${artworkQualityLabel(quality)}" else artworkQualityLabel(quality))
+            Text(stringResource(R.string.settings_artwork_quality), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                ArtworkQuality.entries.forEach { quality ->
+                    ChoiceChip(
+                        label = artworkQualityLabel(quality),
+                        selected = settings.artworkQuality == quality,
+                        onClick = { viewModel.setArtworkQuality(quality) },
+                    )
+                }
+            }
+
+            Text(stringResource(R.string.settings_lock_screen_privacy), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                LockScreenPrivacy.entries.forEach { privacy ->
+                    ChoiceChip(
+                        label = lockScreenPrivacyLabel(privacy),
+                        selected = settings.lockScreenPrivacy == privacy,
+                        onClick = { viewModel.setLockScreenPrivacy(privacy) },
+                    )
                 }
             }
         }
 
-        Text(stringResource(R.string.settings_lock_screen_privacy), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            LockScreenPrivacy.entries.forEach { privacy ->
-                val selected = settings.lockScreenPrivacy == privacy
-                Button(onClick = { viewModel.setLockScreenPrivacy(privacy) }) {
-                    Text(if (selected) "✓ ${lockScreenPrivacyLabel(privacy)}" else lockScreenPrivacyLabel(privacy))
-                }
-            }
+        // --- Now Playing ---
+        SectionHeader(title = stringResource(R.string.settings_now_playing_gestures))
+        SettingsCard {
+            SettingRow(
+                stringResource(R.string.settings_now_playing_gestures),
+                settings.nowPlayingGesturesEnabled,
+                viewModel::toggleNowPlayingGestures,
+            )
+            SettingRow(
+                stringResource(R.string.settings_shake_to_pause),
+                settings.shakeToPauseEnabled,
+                viewModel::toggleShakeToPause,
+            )
         }
 
-        Button(onClick = onOpenDebugInfo) { Text(stringResource(R.string.settings_debug_info)) }
+        // --- Smart Features ---
+        SectionHeader(title = stringResource(R.string.settings_smart_search))
+        SettingsCard {
+            Button(onClick = onOpenSmartSearch) { Text(stringResource(R.string.settings_search_by_keyword)) }
+        }
 
-        Text(stringResource(R.string.settings_backup_restore), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        // --- Car & Bluetooth ---
+        SectionHeader(title = stringResource(R.string.settings_car_bluetooth))
+        SettingsCard {
+            Button(onClick = onOpenBluetoothDevices) { Text(stringResource(R.string.settings_bluetooth_device_profiles)) }
+        }
+
+        // --- DJ Mode ---
+        SectionHeader(title = stringResource(R.string.nav_dj_mode))
+        SettingsCard {
+            Button(onClick = onOpenDjMode) { Text(stringResource(R.string.settings_open_dj_mode)) }
+        }
+
+        // --- Network ---
+        SectionHeader(title = stringResource(R.string.settings_network))
+        SettingsCard {
+            Button(onClick = onOpenRemoteServers) { Text(stringResource(R.string.settings_network_servers)) }
+        }
+
+        // --- Backup & Restore ---
+        SectionHeader(title = stringResource(R.string.settings_backup_restore))
+        SettingsCard {
             Text(stringResource(R.string.settings_backup_summary), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Button(onClick = { exportLauncher.launch("rap_music_backup.json") }) {
                 Text(stringResource(R.string.settings_backup))
@@ -300,8 +316,10 @@ fun SettingsScreen(
             }
         }
 
-        Text(stringResource(R.string.settings_about), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
-        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        // --- About / Debug ---
+        SectionHeader(title = stringResource(R.string.settings_about))
+        SettingsCard {
+            Button(onClick = onOpenDebugInfo) { Text(stringResource(R.string.settings_debug_info)) }
             Text(
                 stringResource(R.string.app_name),
                 style = MaterialTheme.typography.bodyMedium,

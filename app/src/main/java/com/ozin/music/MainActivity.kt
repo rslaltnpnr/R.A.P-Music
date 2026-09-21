@@ -8,13 +8,24 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.res.painterResource
+import com.ozin.music.core.ui.theme.Spacing
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -175,7 +186,16 @@ private fun OzinApp() {
     // (it used to overlap DJ Mode's controls at the bottom of the screen).
     val hideChromeFor = setOf(Routes.NOW_PLAYING, Routes.DJ_MODE, Routes.CAR_MODE)
 
+    // Slim brand identity strip shown above the main tabs (not on DJ Mode,
+    // Now Playing, or Car Mode, which keep their own distinct chrome/none).
+    val showBrandBarFor = setOf(Routes.HOME, Routes.LIBRARY, Routes.LISTS, Routes.EQ, Routes.SETTINGS)
+
     Scaffold(
+        topBar = {
+            if (currentRoute in showBrandBarFor) {
+                OzinBrandBar()
+            }
+        },
         bottomBar = {
             if (currentRoute !in hideChromeFor) {
                 Column {
@@ -307,6 +327,28 @@ private fun OzinApp() {
             }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun OzinBrandBar() {
+    TopAppBar(
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Image(
+                    painter = painterResource(R.drawable.logo_mark),
+                    contentDescription = null,
+                    modifier = Modifier.size(Spacing.xl),
+                )
+                Spacer(modifier = Modifier.width(Spacing.sm))
+                Text(
+                    text = stringResource(R.string.app_name),
+                    style = MaterialTheme.typography.titleMedium,
+                )
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(),
+    )
 }
 
 @Composable
