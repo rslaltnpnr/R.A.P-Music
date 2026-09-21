@@ -9,25 +9,40 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.ozin.music.R
+import com.ozin.music.core.data.model.CustomEqPreset
 import com.ozin.music.core.domain.EqPresetId
 
 @Composable
 fun EqualizerScreen(viewModel: EqualizerViewModel = hiltViewModel()) {
     val settings by viewModel.settings.collectAsState()
     val sleepRemaining by viewModel.sleepRemainingMs.collectAsState()
+    val customPresets by viewModel.customPresets.collectAsState()
     val bandCount = viewModel.bandCount()
     val range = viewModel.bandLevelRange()
+    var showSaveDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -104,6 +119,25 @@ fun EqualizerScreen(viewModel: EqualizerViewModel = hiltViewModel()) {
             valueRange = 0f..2000f,
         )
 
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text(stringResource(R.string.eq_custom_presets), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
+            Button(onClick = { showSaveDialog = true }) { Text(stringResource(R.string.eq_save_as)) }
+        }
+        if (customPresets.isEmpty()) {
+            Text(stringResource(R.string.eq_no_custom_presets), color = MaterialTheme.colorScheme.onSurfaceVariant)
+        } else {
+            for (preset in customPresets) {
+                CustomPresetRow(
+                    preset = preset,
+                    onLoad = { viewModel.loadCustomPreset(preset) },
+                    onDelete = { viewModel.deleteCustomPreset(preset) },
+                )
+            }
+        }
+
         Text("Sleep timer", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
         if (sleepRemaining > 0) {
             Text("Stopping in ${sleepRemaining / 60000}m ${(sleepRemaining / 1000) % 60}s", color = MaterialTheme.colorScheme.primary)
@@ -116,6 +150,58 @@ fun EqualizerScreen(viewModel: EqualizerViewModel = hiltViewModel()) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(onClick = { viewModel.startSleepTimerEndOfTrack() }) { Text("End of track") }
             Button(onClick = { viewModel.cancelSleepTimer() }) { Text("Cancel") }
+        }
+    }
+
+    if (showSaveDialog) {
+        var name by remember { mutableStateOf("") }
+        AlertDialog(
+            onDismissRequest = { showSaveDialog = false },
+            title = { Text(stringResource(R.string.eq_save_preset_title)) },
+            text = {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    placeholder = { Text(stringResource(R.string.eq_preset_name_placeholder)) },
+                    singleLine = true,
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.saveCurrentAsCustomPreset(name)
+                        showSaveDialog = false
+                    },
+                    enabled = name.isNotBlank(),
+                ) { Text(stringResource(R.string.eq_save)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showSaveDialog = false }) { Text(stringResource(R.string.eq_cancel)) }
+            },
+        )
+    }
+}
+
+@Composable
+private fun CustomPresetRow(
+    preset: CustomEqPreset,
+    onLoad: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Button(onClick = onLoad, modifier = Modifier.weight(1f)) {
+            Text(preset.name)
+        }
+        IconButton(onClick = onDelete) {
+            Icon(
+                imageVector = Icons.Filled.Delete,
+                contentDescription = stringResource(R.string.eq_delete_preset),
+            )
         }
     }
 }

@@ -36,7 +36,13 @@ data class LibraryUiState(
     val viewMode: ViewMode = ViewMode.LIST,
     val searchQuery: String = "",
     val playlists: List<Playlist> = emptyList(),
+    val selectMode: Boolean = false,
+    val selectedSongIds: Set<Long> = emptySet(),
 )
+
+/** Outcome of a batch "add selected songs to playlist" action, shown to the
+ * user as a one-time summary. */
+data class BatchAddResult(val succeeded: Int, val failed: Int)
 
 @HiltViewModel
 class LibraryViewModel @Inject constructor(
@@ -50,6 +56,8 @@ class LibraryViewModel @Inject constructor(
     private val viewMode = MutableStateFlow(ViewMode.LIST)
     private val searchQuery = MutableStateFlow("")
     private val selectedGroupKey = MutableStateFlow<String?>(null)
+    private val selectMode = MutableStateFlow(false)
+    private val selectedSongIds = MutableStateFlow<Set<Long>>(emptySet())
 
     private data class Filters(
         val tab: LibraryTab,
@@ -63,12 +71,18 @@ class LibraryViewModel @Inject constructor(
         Filters(t, o, m, q, g)
     }
 
+    private data class Selection(val selectMode: Boolean, val selectedIds: Set<Long>)
+
+    private val selection = combine(selectMode, selectedSongIds) { m, ids -> Selection(m, ids) }
+
+    private val filtersAndSelection = combine(filters, selection) { f, s -> f to s }
+
     val uiState: StateFlow<LibraryUiState> = combine(
         songRepository.songs,
         songRepository.favorites,
         playlistRepository.playlists,
-        filters,
-    ) { all, favorites, playlists, f ->
+        filtersAndSelection,
+    ) { all, favorites, playlists, (f, s) ->
         val filtered = if (f.query.isBlank()) all else all.filter {
             it.title.contains(f.query, ignoreCase = true) ||
                 it.artist.contains(f.query, ignoreCase = true) ||
@@ -93,6 +107,8 @@ class LibraryViewModel @Inject constructor(
                 viewMode = f.mode,
                 searchQuery = f.query,
                 playlists = playlists,
+                selectMode = s.selectMode,
+                selectedSongIds = s.selectedIds,
             )
         } else {
             val base = if (f.tab == LibraryTab.FAVORITES) filtered.filter { it.isFavorite } else filtered
@@ -105,6 +121,8 @@ class LibraryViewModel @Inject constructor(
                 viewMode = f.mode,
                 searchQuery = f.query,
                 playlists = playlists,
+                selectMode = s.selectMode,
+                selectedSongIds = s.selectedIds,
             )
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), LibraryUiState())
@@ -143,5 +161,41 @@ class LibraryViewModel @Inject constructor(
 
     fun rescan() {
         viewModelScope.launch { songRepository.rescan() }
+    }
+
+    fun enterSelectMode(initiallySelected: Song? = null) {
+        selectMode.value = true
+        if (initiallySelected != null) {
+            selectedSongIds.value = selectedSongIds.value + initiallySelected.id
+        }
+    }
+
+    fun exitSelectMode() {
+        selectMode.value = false
+        selectedSongIds.value = emptySet()
+    }
+
+    fun toggleSongSelected(song: Song) {
+        val current = selectedSongIds.value
+        selectedSongIds.value = if (song.id in current) current - song.id else current + song.id
+    }
+
+    /** Adds every currently selected song to [playlistId], one at a time so a
+     * single failure never aborts the rest of the batch. Returns a summary
+     * count of successes/failures for the caller to surface. */
+    suspend fun addSelectedToPlaylist(playlistId: Long): BatchAddResult {
+        val ids = selectedSongIds.value
+        var succeeded = 0
+        var failed = 0
+        for (songId in ids) {
+            try {
+                playlistRepository.addSong(playlistId, songId)
+                succeeded++
+            } catch (_: Exception) {
+                failed++
+            }
+        }
+        exitSelectMode()
+        return BatchAddResult(succeeded, failed)
     }
 }

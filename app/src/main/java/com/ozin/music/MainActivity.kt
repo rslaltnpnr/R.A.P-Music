@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -46,6 +47,7 @@ import com.ozin.music.core.settings.AppSettings
 import com.ozin.music.core.settings.SettingsRepository
 import com.ozin.music.core.settings.toLocaleListCompat
 import com.ozin.music.core.ui.theme.OzinMusicTheme
+import com.ozin.music.core.ui.theme.ThemeMode
 import com.ozin.music.feature.bluetooth.BluetoothDevicesScreen
 import com.ozin.music.feature.carmode.CarModeScreen
 import com.ozin.music.feature.duplicates.DuplicatesScreen
@@ -126,9 +128,15 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val appSettings by settingsRepository.settings.collectAsState(initial = AppSettings())
+            val darkMode = when (appSettings.themeMode) {
+                ThemeMode.DARK -> true
+                ThemeMode.LIGHT -> false
+                ThemeMode.SYSTEM -> isSystemInDarkTheme()
+            }
             OzinMusicTheme(
                 preset = appSettings.themePreset,
                 accent = appSettings.accentColorOption.color,
+                darkMode = darkMode,
             ) {
                 var hasPermission by remember {
                     mutableStateOf(

@@ -20,6 +20,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Checklist
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Folder
@@ -30,6 +32,8 @@ import androidx.compose.material.icons.filled.QueueMusic
 import androidx.compose.material.icons.filled.Recommend
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.ViewList
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -41,11 +45,13 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -55,12 +61,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.ozin.music.R
 import com.ozin.music.core.data.mediastore.MediaStoreScanner
+import com.ozin.music.core.data.model.Playlist
 import com.ozin.music.core.data.model.Song
 import com.ozin.music.core.domain.Mood
 import com.ozin.music.core.domain.MoodTagCodec
 import com.ozin.music.core.domain.SongGroup
 import com.ozin.music.core.domain.SortOrder
 import com.ozin.music.core.ui.RatingStars
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -76,21 +84,58 @@ fun LibraryScreen(
     val scanner = remember(context) { MediaStoreScanner(context) }
     var sortMenuOpen by remember { mutableStateOf(false) }
     var songForMenu by remember { mutableStateOf<Song?>(null) }
+    var showAddToPlaylistSheet by remember { mutableStateOf(false) }
+    var batchResult by remember { mutableStateOf<BatchAddResult?>(null) }
+    val coroutineScope = rememberCoroutineScope()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background),
     ) {
-        OutlinedTextField(
-            value = state.searchQuery,
-            onValueChange = viewModel::onSearchQueryChanged,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            placeholder = { Text(stringResource(R.string.library_search_placeholder)) },
-            singleLine = true,
-        )
+        if (state.selectMode) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = stringResource(R.string.library_selected_count_format, state.selectedSongIds.size),
+                    color = MaterialTheme.colorScheme.onBackground,
+                )
+                Row {
+                    IconButton(
+                        onClick = { showAddToPlaylistSheet = true },
+                        enabled = state.selectedSongIds.isNotEmpty(),
+                    ) {
+                        Icon(Icons.Filled.PlaylistAdd, contentDescription = stringResource(R.string.library_add_selected_to_playlist))
+                    }
+                    IconButton(onClick = viewModel::exitSelectMode) {
+                        Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.library_cancel_selection))
+                    }
+                }
+            }
+        } else {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+            ) {
+                OutlinedTextField(
+                    value = state.searchQuery,
+                    onValueChange = viewModel::onSearchQueryChanged,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 16.dp, top = 16.dp, bottom = 16.dp),
+                    placeholder = { Text(stringResource(R.string.library_search_placeholder)) },
+                    singleLine = true,
+                )
+                IconButton(onClick = { viewModel.enterSelectMode() }) {
+                    Icon(Icons.Filled.Checklist, contentDescription = stringResource(R.string.library_select))
+                }
+            }
+        }
 
         ScrollableTabRow(selectedTabIndex = LibraryTab.entries.indexOf(state.tab)) {
             LibraryTab.entries.forEach { tabValue ->
@@ -179,9 +224,17 @@ fun LibraryScreen(
                     SongRow(
                         song = song,
                         scanner = scanner,
-                        onClick = { viewModel.playSong(song); onSongClick() },
+                        selectMode = state.selectMode,
+                        selected = song.id in state.selectedSongIds,
+                        onClick = {
+                            if (state.selectMode) {
+                                viewModel.toggleSongSelected(song)
+                            } else {
+                                viewModel.playSong(song); onSongClick()
+                            }
+                        },
                         onFavorite = { viewModel.toggleFavorite(song) },
-                        onLongClick = { songForMenu = song },
+                        onLongClick = { if (!state.selectMode) songForMenu = song },
                     )
                 }
             }
@@ -192,8 +245,14 @@ fun LibraryScreen(
                         modifier = Modifier
                             .padding(8.dp)
                             .combinedClickable(
-                                onClick = { viewModel.playSong(song); onSongClick() },
-                                onLongClick = { songForMenu = song },
+                                onClick = {
+                                    if (state.selectMode) {
+                                        viewModel.toggleSongSelected(song)
+                                    } else {
+                                        viewModel.playSong(song); onSongClick()
+                                    }
+                                },
+                                onLongClick = { if (!state.selectMode) songForMenu = song },
                             ),
                     ) {
                         AsyncImage(
@@ -226,6 +285,64 @@ fun LibraryScreen(
             onSimilarSongs = { onSimilarSongs(menuSong.id); songForMenu = null },
             onRatingChange = { rating -> viewModel.setRating(menuSong, rating) },
         )
+    }
+
+    if (showAddToPlaylistSheet) {
+        AddToPlaylistSheet(
+            playlists = state.playlists,
+            onDismiss = { showAddToPlaylistSheet = false },
+            onPlaylistChosen = { playlistId ->
+                showAddToPlaylistSheet = false
+                coroutineScope.launch {
+                    batchResult = viewModel.addSelectedToPlaylist(playlistId)
+                }
+            },
+        )
+    }
+
+    val result = batchResult
+    if (result != null) {
+        AlertDialog(
+            onDismissRequest = { batchResult = null },
+            title = { Text(stringResource(R.string.library_add_to_playlist_title)) },
+            text = { Text(stringResource(R.string.library_batch_result_format, result.succeeded, result.failed)) },
+            confirmButton = {
+                TextButton(onClick = { batchResult = null }) { Text(stringResource(R.string.library_ok)) }
+            },
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AddToPlaylistSheet(
+    playlists: List<Playlist>,
+    onDismiss: () -> Unit,
+    onPlaylistChosen: (Long) -> Unit,
+) {
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                stringResource(R.string.library_add_to_playlist_title),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+            )
+            if (playlists.isEmpty()) {
+                Text(stringResource(R.string.library_no_playlists_yet), modifier = Modifier.padding(vertical = 8.dp))
+            }
+            playlists.forEach { playlist ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onPlaylistChosen(playlist.id) }
+                        .padding(vertical = 12.dp),
+                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                ) {
+                    Icon(Icons.Filled.PlaylistAdd, contentDescription = null)
+                    Text(playlist.name, modifier = Modifier.padding(start = 16.dp))
+                }
+            }
+        }
     }
 }
 
@@ -260,6 +377,8 @@ private fun SongRow(
     onClick: () -> Unit,
     onFavorite: () -> Unit,
     onLongClick: () -> Unit,
+    selectMode: Boolean = false,
+    selected: Boolean = false,
 ) {
     Row(
         modifier = Modifier
@@ -284,12 +403,16 @@ private fun SongRow(
             Text(song.artist, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
             MoodChipRow(song.moodTags)
         }
-        IconButton(onClick = onFavorite) {
-            Icon(
-                imageVector = if (song.isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                contentDescription = stringResource(R.string.library_favorite),
-                tint = if (song.isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+        if (selectMode) {
+            Checkbox(checked = selected, onCheckedChange = { onClick() })
+        } else {
+            IconButton(onClick = onFavorite) {
+                Icon(
+                    imageVector = if (song.isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                    contentDescription = stringResource(R.string.library_favorite),
+                    tint = if (song.isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
 }

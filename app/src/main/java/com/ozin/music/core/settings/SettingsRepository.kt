@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.ozin.music.core.domain.EqPresetId
 import com.ozin.music.core.ui.theme.AccentColorOption
+import com.ozin.music.core.ui.theme.ThemeMode
 import com.ozin.music.core.ui.theme.ThemePreset
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -60,6 +61,7 @@ data class AppSettings(
     val lyricsOffsetMs: Int = 0,
     // Personalization (Phase 9)
     val themePreset: ThemePreset = ThemePreset.DEFAULT_DARK,
+    val themeMode: ThemeMode = ThemeMode.DARK,
     val accentColorOption: AccentColorOption = AccentColorOption.PURPLE,
     val nowPlayingVisualMode: NowPlayingVisualMode = NowPlayingVisualMode.DEFAULT,
     val languageOption: LanguageOption = LanguageOption.SYSTEM,
@@ -88,6 +90,7 @@ class SettingsRepository @Inject constructor(
         val LOUDNESS_GAIN_MB = intPreferencesKey("loudness_gain_mb")
         val LYRICS_OFFSET_MS = intPreferencesKey("lyrics_offset_ms")
         val THEME_PRESET = stringPreferencesKey("theme_preset")
+        val THEME_MODE = stringPreferencesKey("theme_mode")
         val ACCENT_COLOR = stringPreferencesKey("accent_color")
         val NOW_PLAYING_VISUAL_MODE = stringPreferencesKey("now_playing_visual_mode")
         val LANGUAGE_OPTION = stringPreferencesKey("language_option")
@@ -120,6 +123,9 @@ class SettingsRepository @Inject constructor(
             themePreset = runCatching {
                 ThemePreset.valueOf(prefs[Keys.THEME_PRESET] ?: ThemePreset.DEFAULT_DARK.name)
             }.getOrDefault(ThemePreset.DEFAULT_DARK),
+            themeMode = runCatching {
+                ThemeMode.valueOf(prefs[Keys.THEME_MODE] ?: ThemeMode.DARK.name)
+            }.getOrDefault(ThemeMode.DARK),
             accentColorOption = runCatching {
                 AccentColorOption.valueOf(prefs[Keys.ACCENT_COLOR] ?: AccentColorOption.PURPLE.name)
             }.getOrDefault(AccentColorOption.PURPLE),
@@ -215,6 +221,10 @@ class SettingsRepository @Inject constructor(
 
     suspend fun setThemePreset(preset: ThemePreset) {
         context.dataStore.edit { it[Keys.THEME_PRESET] = preset.name }
+    }
+
+    suspend fun setThemeMode(mode: ThemeMode) {
+        context.dataStore.edit { it[Keys.THEME_MODE] = mode.name }
     }
 
     suspend fun setAccentColorOption(option: AccentColorOption) {
