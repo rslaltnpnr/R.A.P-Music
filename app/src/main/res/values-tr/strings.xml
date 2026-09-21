@@ -196,6 +196,7 @@
     <string name="dj_automix_prefer_favorites">Favorileri tercih et</string>
     <string name="dj_automix_transition">Geçiş süresi</string>
     <string name="nav_dj_mode">DJ Modu</string>
+    <string name="settings_open_dj_mode">DJ Modunu Aç</string>
 
     <!-- Kilit ekranı kapağı/gizlilik (Faz 11) -->
     <string name="privacy_generic_artist">Bilinmeyen Sanatçı</string>

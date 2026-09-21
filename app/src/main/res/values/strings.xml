@@ -198,6 +198,7 @@
     <string name="dj_automix_prefer_favorites">Prefer favorites</string>
     <string name="dj_automix_transition">Transition length</string>
     <string name="nav_dj_mode">DJ Mode</string>
+    <string name="settings_open_dj_mode">Open DJ Mode</string>
 
     <!-- Lock screen artwork/privacy (Phase 11) -->
     <string name="privacy_generic_artist">Unknown Artist</string>
