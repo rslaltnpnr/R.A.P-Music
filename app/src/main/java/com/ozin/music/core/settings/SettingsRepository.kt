@@ -86,6 +86,7 @@ data class AppSettings(
     val artworkQuality: ArtworkQuality = ArtworkQuality.AUTO,
     val lockScreenPrivacy: LockScreenPrivacy = LockScreenPrivacy.NORMAL,
     val nowPlayingGesturesEnabled: Boolean = true,
+    val shakeToPauseEnabled: Boolean = false,
 )
 
 @Singleton
@@ -120,6 +121,7 @@ class SettingsRepository @Inject constructor(
         val ARTWORK_QUALITY = stringPreferencesKey("artwork_quality")
         val LOCK_SCREEN_PRIVACY = stringPreferencesKey("lock_screen_privacy")
         val NOW_PLAYING_GESTURES_ENABLED = booleanPreferencesKey("now_playing_gestures_enabled")
+        val SHAKE_TO_PAUSE_ENABLED = booleanPreferencesKey("shake_to_pause_enabled")
     }
 
     val settings: Flow<AppSettings> = context.dataStore.data.map { prefs ->
@@ -172,7 +174,12 @@ class SettingsRepository @Inject constructor(
                 LockScreenPrivacy.valueOf(prefs[Keys.LOCK_SCREEN_PRIVACY] ?: LockScreenPrivacy.NORMAL.name)
             }.getOrDefault(LockScreenPrivacy.NORMAL),
             nowPlayingGesturesEnabled = prefs[Keys.NOW_PLAYING_GESTURES_ENABLED] ?: true,
+            shakeToPauseEnabled = prefs[Keys.SHAKE_TO_PAUSE_ENABLED] ?: false,
         )
+    }
+
+    suspend fun setShakeToPauseEnabled(enabled: Boolean) {
+        context.dataStore.edit { it[Keys.SHAKE_TO_PAUSE_ENABLED] = enabled }
     }
 
     suspend fun addExcludedFolder(path: String) {
@@ -252,6 +259,16 @@ class SettingsRepository @Inject constructor(
     suspend fun addExcludedFolders(paths: Collection<String>) {
         if (paths.isEmpty()) return
         context.dataStore.edit { it[Keys.EXCLUDED_FOLDERS] = (it[Keys.EXCLUDED_FOLDERS] ?: emptySet()) + paths }
+    }
+
+    /** Absolute setters used by backup/restore ([com.ozin.music.core.backup.BackupManager]),
+     * which needs to replace a value outright rather than adjust it. */
+    suspend fun replaceExcludedFolders(paths: Set<String>) {
+        context.dataStore.edit { it[Keys.EXCLUDED_FOLDERS] = paths }
+    }
+
+    suspend fun setLyricsOffsetMs(offsetMs: Int) {
+        context.dataStore.edit { it[Keys.LYRICS_OFFSET_MS] = offsetMs }
     }
 
     suspend fun setThemePreset(preset: ThemePreset) {

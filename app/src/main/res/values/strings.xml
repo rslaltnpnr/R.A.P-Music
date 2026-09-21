@@ -251,4 +251,32 @@
     <string name="settings_about">About</string>
     <string name="settings_about_version_format">Version %1$s</string>
     <string name="settings_about_developer">Developed by Resul AltınPınar (R.A.P)</string>
+
+    <!-- Home screen widget -->
+    <string name="widget_name">R.A.P Music Player</string>
+    <string name="widget_description">Album art, song info and play/pause/skip controls.</string>
+    <string name="widget_no_song">Nothing playing</string>
+    <string name="widget_play_description">Play</string>
+    <string name="widget_pause_description">Pause</string>
+    <string name="widget_next_description">Next track</string>
+    <string name="widget_previous_description">Previous track</string>
+
+    <!-- Shake to pause -->
+    <string name="settings_shake_to_pause">Shake to pause</string>
+    <string name="settings_shake_to_pause_summary">Pause playback by shaking the phone while a song is playing.</string>
+
+    <!-- Backup / restore -->
+    <string name="settings_backup_restore">Backup &amp; restore</string>
+    <string name="settings_backup">Export backup</string>
+    <string name="settings_backup_summary">Save playlists, favorites, ratings, EQ presets and settings to a file.</string>
+    <string name="settings_restore">Restore backup</string>
+    <string name="settings_restore_summary">Load a previously exported backup file.</string>
+    <string name="backup_export_success">Backup saved.</string>
+    <string name="backup_export_failure">Could not save backup: %1$s</string>
+    <string name="backup_import_success">Backup restored.</string>
+    <string name="backup_import_failure">Could not restore backup: this file is not a valid R.A.P Music backup (%1$s).</string>
+
+    <!-- Search history -->
+    <string name="search_recent_searches">Recent searches</string>
+    <string name="search_clear_history">Clear search history</string>
 </resources>

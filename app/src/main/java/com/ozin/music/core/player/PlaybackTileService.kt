@@ -20,6 +20,9 @@ import kotlinx.coroutines.launch
  * Deliberately uses the simple always-available TileService callback
  * pattern (onStartListening/onClick/onStopListening) rather than the
  * "active tile" APIs, since a passive toggle tile does not need them.
+ * Single-tap (play/pause) only: `TileService` has no long-press callback
+ * on any public API level, so a "long-press to skip" tile gesture is not
+ * possible here.
  */
 @AndroidEntryPoint
 class PlaybackTileService : TileService() {

@@ -4,6 +4,10 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items as gridItems
@@ -33,6 +38,7 @@ import androidx.compose.material.icons.filled.Recommend
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.ViewList
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -80,6 +86,8 @@ fun LibraryScreen(
     viewModel: LibraryViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
+    val recentSearches by viewModel.recentSearches.collectAsState()
+    var searchFieldFocused by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val scanner = remember(context) { MediaStoreScanner(context) }
     var sortMenuOpen by remember { mutableStateOf(false) }
@@ -127,12 +135,40 @@ fun LibraryScreen(
                     onValueChange = viewModel::onSearchQueryChanged,
                     modifier = Modifier
                         .weight(1f)
-                        .padding(start = 16.dp, top = 16.dp, bottom = 16.dp),
+                        .padding(start = 16.dp, top = 16.dp, bottom = 16.dp)
+                        .onFocusChanged { searchFieldFocused = it.isFocused },
                     placeholder = { Text(stringResource(R.string.library_search_placeholder)) },
                     singleLine = true,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                    keyboardActions = KeyboardActions(onSearch = { viewModel.commitSearch(state.searchQuery) }),
                 )
                 IconButton(onClick = { viewModel.enterSelectMode() }) {
                     Icon(Icons.Filled.Checklist, contentDescription = stringResource(R.string.library_select))
+                }
+            }
+            if (searchFieldFocused && state.searchQuery.isBlank() && recentSearches.isNotEmpty()) {
+                Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        Text(
+                            stringResource(R.string.search_recent_searches),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        TextButton(onClick = viewModel::clearSearchHistory) {
+                            Text(stringResource(R.string.search_clear_history))
+                        }
+                    }
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(recentSearches) { query ->
+                            AssistChip(
+                                onClick = { viewModel.commitSearch(query) },
+                                label = { Text(query) },
+                            )
+                        }
+                    }
                 }
             }
         }

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.ozin.music.core.data.model.Playlist
 import com.ozin.music.core.data.model.Song
 import com.ozin.music.core.data.repository.PlaylistRepository
+import com.ozin.music.core.data.repository.SearchHistoryRepository
 import com.ozin.music.core.data.repository.SongRepository
 import com.ozin.music.core.domain.LibraryGrouping
 import com.ozin.music.core.domain.SongGroup
@@ -49,7 +50,14 @@ class LibraryViewModel @Inject constructor(
     private val songRepository: SongRepository,
     private val playlistRepository: PlaylistRepository,
     private val playerController: PlayerController,
+    private val searchHistoryRepository: SearchHistoryRepository,
 ) : ViewModel() {
+
+    /** Last ~10 distinct committed searches, most recent first - shown as
+     * suggestion chips when the search field is empty. */
+    val recentSearches: StateFlow<List<String>> = searchHistoryRepository.recentQueries.stateIn(
+        viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList()
+    )
 
     private val tab = MutableStateFlow(LibraryTab.SONGS)
     private val sortOrder = MutableStateFlow(SortOrder.TITLE_ASC)
@@ -138,6 +146,18 @@ class LibraryViewModel @Inject constructor(
     fun selectSort(order: SortOrder) { sortOrder.value = order }
     fun toggleViewMode() { viewMode.value = if (viewMode.value == ViewMode.LIST) ViewMode.GRID else ViewMode.LIST }
     fun onSearchQueryChanged(query: String) { searchQuery.value = query }
+
+    /** Commits the current query into search history (e.g. on IME "search"
+     * submission, or when a suggestion chip is tapped). */
+    fun commitSearch(query: String) {
+        if (query.isBlank()) return
+        searchQuery.value = query
+        viewModelScope.launch { searchHistoryRepository.record(query) }
+    }
+
+    fun clearSearchHistory() {
+        viewModelScope.launch { searchHistoryRepository.clear() }
+    }
 
     fun playSong(song: Song) {
         val within = uiState.value.songs

@@ -1,5 +1,6 @@
 package com.ozin.music.feature.player
 
+import android.media.audiofx.Visualizer
 import android.os.Build
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
@@ -40,6 +41,10 @@ import coil.compose.rememberAsyncImagePainter
 import com.ozin.music.R
 import com.ozin.music.core.domain.VisualizerMath
 import androidx.compose.runtime.withFrameNanos
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateListOf
+import com.ozin.music.core.player.AudioSessionIdBridge
 import com.ozin.music.core.settings.NowPlayingVisualMode
 
 /**
@@ -67,10 +72,24 @@ private fun rememberPlaybackRotation(isPlaying: Boolean, degreesPerSecond: Float
 }
 
 /**
- * Deterministic animated bar visualization. This does NOT analyze real audio
- * frequency data - see [VisualizerMath] - it is a visual animation seeded by
- * the current song id and driven by actual playback position, so it moves
- * only while the song is actually playing/advancing.
+ * Bar visualization driven by a real `android.media.audiofx.Visualizer`
+ * attached to the currently playing ExoPlayer's audio session id (published
+ * by [com.ozin.music.core.player.PlaybackService] via
+ * [AudioSessionIdBridge], the same attach-on-session-id-change pattern
+ * `EffectsChain` already uses for the other audiofx classes). It captures
+ * real FFT frames with [Visualizer.setDataCaptureListener] and turns them
+ * into per-bar magnitudes - this is genuine audio analysis, not a canned
+ * animation.
+ *
+ * `Visualizer` is not guaranteed to be available: some OEMs restrict it, it
+ * can require a capture-audio-adjacent permission on some API levels, and
+ * `Visualizer(sessionId)`'s constructor or `setEnabled(true)` can throw at
+ * runtime on real devices in ways that can't be fully predicted here. If
+ * attachment or capture fails for any reason, this falls back to the
+ * original deterministic, harmless [VisualizerMath] animation (documented
+ * there as NOT real audio data) rather than showing a blank or crashing
+ * screen - the fallback path is only ever used when real capture could not
+ * be established, never presented as if it were real.
  */
 @Composable
 fun VisualizerVisualMode(
@@ -82,6 +101,78 @@ fun VisualizerVisualMode(
 ) {
     val barCount = 24
     val timeSeconds = positionMs / 1000f
+    val audioSessionId by AudioSessionIdBridge.audioSessionId.collectAsState()
+    val fftBars = remember { mutableStateListOf(*FloatArray(barCount) { 0f }.toTypedArray()) }
+    var realCaptureActive by remember { mutableStateOf(false) }
+
+    DisposableEffect(audioSessionId) {
+        var visualizer: Visualizer? = null
+        if (audioSessionId != 0) {
+            try {
+                visualizer = Visualizer(audioSessionId).apply {
+                    val captureSize = Visualizer.getCaptureSizeRange()[1]
+                    setCaptureSize(captureSize)
+                    setDataCaptureListener(
+                        object : Visualizer.OnDataCaptureListener {
+                            override fun onWaveFormDataCapture(v: Visualizer?, waveform: ByteArray?, samplingRate: Int) = Unit
+
+                            override fun onFftDataCapture(v: Visualizer?, fft: ByteArray?, samplingRate: Int) {
+                                if (fft == null || fft.size < 4) return
+                                // Android's FFT packing: fft[0] = DC real, fft[1] =
+                                // Nyquist real, then (re, im) pairs for bins
+                                // 1..n/2-1. Compute a magnitude per bin, then fold
+                                // those magnitudes into `barCount` buckets by
+                                // averaging, and normalize with a fixed ceiling
+                                // (typical speech/music FFT magnitudes from this API
+                                // rarely exceed a few hundred) so bars stay in 0..1.
+                                val binCount = fft.size / 2
+                                val magnitudes = FloatArray(binCount)
+                                magnitudes[0] = kotlin.math.abs(fft[0].toInt()).toFloat()
+                                for (bin in 1 until binCount) {
+                                    val re = fft[2 * bin].toFloat()
+                                    val im = if (2 * bin + 1 < fft.size) fft[2 * bin + 1].toFloat() else 0f
+                                    magnitudes[bin] = kotlin.math.sqrt(re * re + im * im)
+                                }
+                                val bucketSize = (binCount / barCount).coerceAtLeast(1)
+                                for (i in 0 until barCount) {
+                                    val from = i * bucketSize
+                                    val to = ((i + 1) * bucketSize).coerceAtMost(binCount)
+                                    if (from >= to) continue
+                                    var sum = 0f
+                                    for (b in from until to) sum += magnitudes[b]
+                                    val avg = sum / (to - from)
+                                    fftBars[i] = (avg / 180f).coerceIn(0.05f, 1f)
+                                }
+                            }
+                        },
+                        Visualizer.getMaxCaptureRate() / 2,
+                        false,
+                        true,
+                    )
+                    enabled = true
+                }
+                realCaptureActive = true
+            } catch (_: Exception) {
+                // RuntimeException (native init failure), SecurityException
+                // (capture not permitted on this OEM/build) or
+                // UnsupportedOperationException - fall back below.
+                realCaptureActive = false
+                visualizer?.release()
+                visualizer = null
+            }
+        } else {
+            realCaptureActive = false
+        }
+        onDispose {
+            try {
+                visualizer?.enabled = false
+                visualizer?.release()
+            } catch (_: Exception) {
+                // Already released/invalid - nothing to clean up.
+            }
+        }
+    }
+
     Canvas(
         modifier = modifier
             .fillMaxWidth()
@@ -93,11 +184,16 @@ fun VisualizerVisualMode(
         val totalWidth = barCount * (barWidth + gap)
         val startX = (size.width - totalWidth) / 2f
         for (i in 0 until barCount) {
-            val heightFraction = if (isPlaying) {
-                VisualizerMath.barHeight(songId, timeSeconds, i, barCount)
-            } else {
+            val heightFraction = if (!isPlaying) {
                 // Frozen, low baseline when paused rather than a moving animation.
                 0.18f
+            } else if (realCaptureActive) {
+                fftBars[i]
+            } else {
+                // Fallback path: real Visualizer capture is unavailable on this
+                // device/build, so this shows the deterministic, clearly
+                // documented non-audio animation instead of a blank canvas.
+                VisualizerMath.barHeight(songId, timeSeconds, i, barCount)
             }
             val barHeight = size.height * heightFraction
             val x = startX + i * (barWidth + gap)

@@ -59,4 +59,19 @@ class PlaylistRepository @Inject constructor(
         }
         return newId
     }
+
+    /** One-shot snapshot of every playlist name currently in the database,
+     * used by [com.ozin.music.core.backup.BackupManager] to pick a
+     * non-clashing name when restoring a backup. */
+    suspend fun playlistNamesSnapshot(): Set<String> = playlists.first().map { it.name }.toSet()
+
+    /** One-shot snapshot of every playlist paired with its song paths (not
+     * ids, which are not stable across a MediaStore rescan), used by
+     * [com.ozin.music.core.backup.BackupManager] to serialize playlist
+     * membership in a way that survives being restored onto a different
+     * library scan. */
+    suspend fun songsInAllPlaylistsSnapshot(): List<Pair<String, List<String>>> =
+        playlists.first().map { playlist ->
+            playlist.name to playlistDao.observeSongsForPlaylist(playlist.id).first().map { it.path }
+        }
 }
