@@ -25,7 +25,7 @@ val versionNameValue: String =
 
 // Single source of truth for the app's display name (also see gradle.properties#appName).
 val appNameValue: String =
-    (project.findProperty("appName") as String?) ?: "OZIN Music"
+    (project.findProperty("appName") as String?) ?: "R.A.P Music"
 
 android {
     namespace = "com.ozin.music"
