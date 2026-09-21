@@ -1,5 +1,8 @@
 package com.ozin.music.feature.settings
 
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -20,12 +23,14 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -55,6 +60,27 @@ fun SettingsScreen(
 ) {
     val settings by viewModel.settings.collectAsState()
     var folderInput by remember { mutableStateOf("") }
+    val context = LocalContext.current
+    val backupResult by viewModel.backupResult.collectAsState()
+
+    val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+        uri?.let { viewModel.exportBackup(it) }
+    }
+    val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri?.let { viewModel.importBackup(it) }
+    }
+
+    LaunchedEffect(backupResult) {
+        val result = backupResult ?: return@LaunchedEffect
+        val message = when (result) {
+            is BackupResult.ExportSuccess -> context.getString(R.string.backup_export_success)
+            is BackupResult.ExportFailure -> context.getString(R.string.backup_export_failure, result.reason)
+            is BackupResult.ImportSuccess -> context.getString(R.string.backup_import_success)
+            is BackupResult.ImportFailure -> context.getString(R.string.backup_import_failure, result.reason)
+        }
+        Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+        viewModel.consumeBackupResult()
+    }
 
     Column(
         modifier = Modifier
@@ -234,6 +260,11 @@ fun SettingsScreen(
             settings.nowPlayingGesturesEnabled,
             viewModel::toggleNowPlayingGestures,
         )
+        SettingRow(
+            stringResource(R.string.settings_shake_to_pause),
+            settings.shakeToPauseEnabled,
+            viewModel::toggleShakeToPause,
+        )
 
         Text(stringResource(R.string.settings_artwork_quality), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -256,6 +287,18 @@ fun SettingsScreen(
         }
 
         Button(onClick = onOpenDebugInfo) { Text(stringResource(R.string.settings_debug_info)) }
+
+        Text(stringResource(R.string.settings_backup_restore), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(stringResource(R.string.settings_backup_summary), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Button(onClick = { exportLauncher.launch("rap_music_backup.json") }) {
+                Text(stringResource(R.string.settings_backup))
+            }
+            Text(stringResource(R.string.settings_restore_summary), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Button(onClick = { importLauncher.launch(arrayOf("application/json")) }) {
+                Text(stringResource(R.string.settings_restore))
+            }
+        }
 
         Text(stringResource(R.string.settings_about), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {

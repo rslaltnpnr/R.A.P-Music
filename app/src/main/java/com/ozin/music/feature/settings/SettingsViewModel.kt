@@ -1,7 +1,9 @@
 package com.ozin.music.feature.settings
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ozin.music.core.backup.BackupManager
 import com.ozin.music.core.data.repository.SongRepository
 import androidx.appcompat.app.AppCompatDelegate
 import com.ozin.music.core.settings.AppSettings
@@ -15,21 +17,61 @@ import com.ozin.music.core.ui.theme.AccentColorOption
 import com.ozin.music.core.ui.theme.ThemeMode
 import com.ozin.music.core.ui.theme.ThemePreset
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
+/** Result of the last backup export/import attempt, surfaced to the UI as a
+ * one-shot message (a Snackbar). Never silent: both success and failure are
+ * represented, failure carries a real (if brief) reason. */
+sealed interface BackupResult {
+    data object ExportSuccess : BackupResult
+    data class ExportFailure(val reason: String) : BackupResult
+    data object ImportSuccess : BackupResult
+    data class ImportFailure(val reason: String) : BackupResult
+}
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val songRepository: SongRepository,
+    private val backupManager: BackupManager,
 ) : ViewModel() {
 
     val settings: StateFlow<AppSettings> = settingsRepository.settings.stateIn(
         viewModelScope, SharingStarted.WhileSubscribed(5_000), AppSettings()
     )
+
+    private val _backupResult = MutableStateFlow<BackupResult?>(null)
+    val backupResult: StateFlow<BackupResult?> = _backupResult.asStateFlow()
+
+    fun exportBackup(uri: Uri) {
+        viewModelScope.launch {
+            val result = backupManager.export(uri)
+            _backupResult.value = result.fold(
+                onSuccess = { BackupResult.ExportSuccess },
+                onFailure = { BackupResult.ExportFailure(it.message ?: it.javaClass.simpleName) },
+            )
+        }
+    }
+
+    fun importBackup(uri: Uri) {
+        viewModelScope.launch {
+            val result = backupManager.import(uri)
+            _backupResult.value = result.fold(
+                onSuccess = { BackupResult.ImportSuccess },
+                onFailure = { BackupResult.ImportFailure(it.message ?: it.javaClass.simpleName) },
+            )
+        }
+    }
+
+    fun consumeBackupResult() {
+        _backupResult.value = null
+    }
 
     fun toggleCrossfade(enabled: Boolean) {
         viewModelScope.launch { settingsRepository.setCrossfadeEnabled(enabled) }
@@ -126,5 +168,9 @@ class SettingsViewModel @Inject constructor(
 
     fun toggleNowPlayingGestures(enabled: Boolean) {
         viewModelScope.launch { settingsRepository.setNowPlayingGesturesEnabled(enabled) }
+    }
+
+    fun toggleShakeToPause(enabled: Boolean) {
+        viewModelScope.launch { settingsRepository.setShakeToPauseEnabled(enabled) }
     }
 }

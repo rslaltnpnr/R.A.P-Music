@@ -1,8 +1,10 @@
 package com.ozin.music.core.player
 
 import android.graphics.drawable.Icon
+import android.os.Build
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
+import androidx.annotation.RequiresApi
 import com.ozin.music.R
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -44,6 +46,15 @@ class PlaybackTileService : TileService() {
     override fun onClick() {
         super.onClick()
         playerController.togglePlayPause()
+    }
+
+    /** Long-press: skip to next track. Only available from API 34 (Android
+     * 14, UPSIDE_DOWN_CAKE) onward - [TileService.onLongClick] does not exist
+     * on older platforms, so below API 34 the tile stays single-tap-only. */
+    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+    override fun onLongClick() {
+        super.onLongClick()
+        playerController.skipToNext()
     }
 
     override fun onStopListening() {

@@ -77,6 +77,22 @@
             </intent-filter>
         </service>
 
+        <!-- Home screen widget: play/pause/next/previous. -->
+        <receiver
+            android:name=".core.player.widget.PlaybackWidgetProvider"
+            android:exported="true"
+            android:label="@string/widget_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.ozin.music.widget.ACTION_TOGGLE" />
+                <action android:name="com.ozin.music.widget.ACTION_NEXT" />
+                <action android:name="com.ozin.music.widget.ACTION_PREVIOUS" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/playback_widget_info" />
+        </receiver>
+
         <receiver
             android:name=".core.bluetooth.BluetoothProfileReceiver"
             android:exported="true">

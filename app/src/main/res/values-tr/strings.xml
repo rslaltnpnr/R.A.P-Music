@@ -249,4 +249,32 @@
     <string name="settings_about">Hakkında</string>
     <string name="settings_about_version_format">Sürüm %1$s</string>
     <string name="settings_about_developer">Resul AltınPınar (R.A.P) tarafından geliştirildi</string>
+
+    <!-- Ana ekran widget'ı -->
+    <string name="widget_name">R.A.P Music Çalar</string>
+    <string name="widget_description">Albüm kapağı, şarkı bilgisi ve oynat/duraklat/geç kontrolleri.</string>
+    <string name="widget_no_song">Çalan bir şarkı yok</string>
+    <string name="widget_play_description">Oynat</string>
+    <string name="widget_pause_description">Duraklat</string>
+    <string name="widget_next_description">Sonraki parça</string>
+    <string name="widget_previous_description">Önceki parça</string>
+
+    <!-- Sallayarak duraklatma -->
+    <string name="settings_shake_to_pause">Sallayarak duraklat</string>
+    <string name="settings_shake_to_pause_summary">Şarkı çalarken telefonu sallayarak oynatmayı duraklatın.</string>
+
+    <!-- Yedekleme / geri yükleme -->
+    <string name="settings_backup_restore">Yedekleme ve geri yükleme</string>
+    <string name="settings_backup">Yedeği dışa aktar</string>
+    <string name="settings_backup_summary">Çalma listelerini, favorileri, puanları, EQ ön ayarlarını ve ayarları bir dosyaya kaydedin.</string>
+    <string name="settings_restore">Yedeği geri yükle</string>
+    <string name="settings_restore_summary">Daha önce dışa aktarılmış bir yedek dosyasını yükleyin.</string>
+    <string name="backup_export_success">Yedek kaydedildi.</string>
+    <string name="backup_export_failure">Yedek kaydedilemedi: %1$s</string>
+    <string name="backup_import_success">Yedek geri yüklendi.</string>
+    <string name="backup_import_failure">Yedek geri yüklenemedi: bu dosya geçerli bir R.A.P Music yedeği değil (%1$s).</string>
+
+    <!-- Arama geçmişi -->
+    <string name="search_recent_searches">Son aramalar</string>
+    <string name="search_clear_history">Arama geçmişini temizle</string>
 </resources>
