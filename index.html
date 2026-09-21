@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>R.A.P Music Player</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="player">
+    <header class="player-header">
+      <h1>R.A.P Music</h1>
+      <label class="upload-btn" for="fileInput">+ Şarkı Ekle</label>
+      <input type="file" id="fileInput" accept="audio/*" multiple hidden>
+    </header>
+
+    <div class="cover-art">
+      <div class="disc" id="disc"></div>
+    </div>
+
+    <div class="track-info">
+      <h2 id="trackTitle">Bir şarkı ekleyin</h2>
+      <p id="trackMeta">—</p>
+    </div>
+
+    <div class="progress-container">
+      <span id="currentTime">0:00</span>
+      <input type="range" id="progressBar" value="0" min="0" max="100" step="0.1">
+      <span id="duration">0:00</span>
+    </div>
+
+    <div class="controls">
+      <button id="shuffleBtn" title="Karıştır">🔀</button>
+      <button id="prevBtn" title="Önceki">⏮</button>
+      <button id="playBtn" title="Oynat/Duraklat">▶</button>
+      <button id="nextBtn" title="Sonraki">⏭</button>
+      <button id="repeatBtn" title="Tekrarla">🔁</button>
+    </div>
+
+    <div class="volume-container">
+      <span>🔊</span>
+      <input type="range" id="volumeBar" value="100" min="0" max="100" step="1">
+    </div>
+
+    <ul class="playlist" id="playlist"></ul>
+  </div>
+
+  <audio id="audio"></audio>
+  <script src="script.js"></script>
+</body>
+</html>
