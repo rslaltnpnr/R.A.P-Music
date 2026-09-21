@@ -52,8 +52,11 @@ import com.ozin.music.feature.player.NowPlayingScreen
 import com.ozin.music.feature.playlist.EqualizerScreen
 import com.ozin.music.feature.playlist.PlaylistDetailScreen
 import com.ozin.music.feature.playlist.PlaylistsScreen
+import com.ozin.music.feature.playlist.SmartPlaylistDetailScreen
+import com.ozin.music.feature.playlist.SmartPlaylistsScreen
 import com.ozin.music.feature.problems.ProblemFilesScreen
 import com.ozin.music.feature.settings.SettingsScreen
+import com.ozin.music.feature.stats.StatsScreen
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -71,9 +74,13 @@ object Routes {
     const val PLAYLIST_DETAIL = "playlist/{playlistId}"
     const val METADATA_EDIT = "metadata_edit/{songId}"
     const val FILE_MANAGEMENT = "file_management/{songId}"
+    const val STATS = "stats"
+    const val SMART_PLAYLISTS = "smart_playlists"
+    const val SMART_PLAYLIST_DETAIL = "smart_playlist/{smartPlaylistId}"
     fun playlistDetail(playlistId: Long) = "playlist/$playlistId"
     fun metadataEdit(songId: Long) = "metadata_edit/$songId"
     fun fileManagement(songId: Long) = "file_management/$songId"
+    fun smartPlaylistDetail(smartPlaylistId: Long) = "smart_playlist/$smartPlaylistId"
 }
 
 @AndroidEntryPoint
@@ -141,7 +148,10 @@ private fun OzinApp() {
                     )
                 }
                 composable(Routes.LISTS) {
-                    PlaylistsScreen(onPlaylistClick = { id -> navController.navigate(Routes.playlistDetail(id)) })
+                    PlaylistsScreen(
+                        onPlaylistClick = { id -> navController.navigate(Routes.playlistDetail(id)) },
+                        onOpenSmartPlaylists = { navController.navigate(Routes.SMART_PLAYLISTS) },
+                    )
                 }
                 composable(Routes.EQ) { EqualizerScreen() }
                 composable(Routes.SETTINGS) {
@@ -149,6 +159,22 @@ private fun OzinApp() {
                         onOpenFolders = { navController.navigate(Routes.FOLDERS) },
                         onOpenProblemFiles = { navController.navigate(Routes.PROBLEM_FILES) },
                         onOpenDuplicates = { navController.navigate(Routes.DUPLICATES) },
+                        onOpenStats = { navController.navigate(Routes.STATS) },
+                    )
+                }
+                composable(Routes.STATS) { StatsScreen(onBack = { navController.popBackStack() }) }
+                composable(Routes.SMART_PLAYLISTS) {
+                    SmartPlaylistsScreen(
+                        onSmartPlaylistClick = { id -> navController.navigate(Routes.smartPlaylistDetail(id)) },
+                    )
+                }
+                composable(
+                    route = Routes.SMART_PLAYLIST_DETAIL,
+                    arguments = listOf(navArgument("smartPlaylistId") { type = NavType.LongType }),
+                ) {
+                    SmartPlaylistDetailScreen(
+                        onBack = { navController.popBackStack() },
+                        onSongClick = { navController.navigate(Routes.NOW_PLAYING) },
                     )
                 }
                 composable(Routes.NOW_PLAYING) {

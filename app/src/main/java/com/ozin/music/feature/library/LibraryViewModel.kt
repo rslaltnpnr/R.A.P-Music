@@ -130,6 +130,10 @@ class LibraryViewModel @Inject constructor(
         viewModelScope.launch { songRepository.setFavorite(song.id, !song.isFavorite) }
     }
 
+    fun setRating(song: Song, rating: Int) {
+        viewModelScope.launch { songRepository.setRating(song.id, rating) }
+    }
+
     fun playNext(song: Song) = playerController.playNext(song)
     fun addToQueue(song: Song) = playerController.addToQueue(song)
 

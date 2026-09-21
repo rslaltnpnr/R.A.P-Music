@@ -28,4 +28,10 @@ object DatabaseModule {
 
     @Provides
     fun provideProblemFileDao(database: OzinDatabase): ProblemFileDao = database.problemFileDao()
+
+    @Provides
+    fun provideListeningEventDao(database: OzinDatabase): ListeningEventDao = database.listeningEventDao()
+
+    @Provides
+    fun provideSmartPlaylistDao(database: OzinDatabase): SmartPlaylistDao = database.smartPlaylistDao()
 }

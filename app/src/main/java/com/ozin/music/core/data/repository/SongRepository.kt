@@ -3,6 +3,7 @@ package com.ozin.music.core.data.repository
 import com.ozin.music.core.data.local.SongDao
 import com.ozin.music.core.data.mediastore.MediaStoreScanner
 import com.ozin.music.core.data.model.Song
+import com.ozin.music.core.domain.RatingValidator
 import com.ozin.music.core.settings.SettingsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -51,6 +52,7 @@ class SongRepository @Inject constructor(
                     isFavorite = existing.isFavorite,
                     playCount = existing.playCount,
                     lastPlayedAt = existing.lastPlayedAt,
+                    rating = existing.rating,
                 )
             } else {
                 fresh
@@ -65,6 +67,9 @@ class SongRepository @Inject constructor(
     }
 
     suspend fun setFavorite(songId: Long, favorite: Boolean) = songDao.setFavorite(songId, favorite)
+
+    /** Clamped to the valid 0 (unrated) - 5 star range. */
+    suspend fun setRating(songId: Long, rating: Int) = songDao.setRating(songId, RatingValidator.clamp(rating))
 
     /** Writes a metadata edit straight into Room so the UI refreshes without a full rescan. */
     suspend fun applyMetadataEdit(song: Song) = songDao.update(song)

@@ -56,6 +56,8 @@ class PlayerViewModel @Inject constructor(
         playbackState.value.currentSong?.let { playerController.toggleFavorite(it.id) }
     }
 
+    fun setRating(songId: Long, rating: Int) = playerController.setRating(songId, rating)
+
     fun addCurrentToPlaylist(playlistId: Long) {
         val songId = playbackState.value.currentSong?.id ?: return
         viewModelScope.launch { playlistRepository.addSong(playlistId, songId) }

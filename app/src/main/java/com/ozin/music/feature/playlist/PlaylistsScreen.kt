@@ -12,9 +12,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,7 +36,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun PlaylistsScreen(onPlaylistClick: (Long) -> Unit, viewModel: PlaylistViewModel = hiltViewModel()) {
+fun PlaylistsScreen(
+    onPlaylistClick: (Long) -> Unit,
+    onOpenSmartPlaylists: () -> Unit = {},
+    viewModel: PlaylistViewModel = hiltViewModel(),
+) {
     val playlists by viewModel.playlists.collectAsState()
     var showCreateDialog by remember { mutableStateOf(false) }
 
@@ -46,17 +52,27 @@ fun PlaylistsScreen(onPlaylistClick: (Long) -> Unit, viewModel: PlaylistViewMode
         },
         containerColor = MaterialTheme.colorScheme.background,
     ) { padding ->
+        Column(modifier = Modifier.padding(padding)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onOpenSmartPlaylists)
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text("Smart playlists", color = MaterialTheme.colorScheme.primary)
+                Icon(Icons.Filled.AutoAwesome, contentDescription = "Smart playlists", tint = MaterialTheme.colorScheme.primary)
+            }
         if (playlists.isEmpty()) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding)
                     .padding(24.dp),
             ) {
                 Text("No playlists yet. Tap + to create one.", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         } else {
-            LazyColumn(modifier = Modifier.padding(padding)) {
+            LazyColumn(modifier = Modifier) {
                 items(playlists, key = { it.id }) { playlist ->
                     Row(
                         modifier = Modifier
@@ -75,6 +91,7 @@ fun PlaylistsScreen(onPlaylistClick: (Long) -> Unit, viewModel: PlaylistViewMode
                     }
                 }
             }
+        }
         }
     }
 
