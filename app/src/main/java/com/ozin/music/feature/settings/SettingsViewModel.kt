@@ -6,6 +6,8 @@ import com.ozin.music.core.data.repository.SongRepository
 import com.ozin.music.core.settings.AppSettings
 import com.ozin.music.core.settings.RepeatMode
 import com.ozin.music.core.settings.SettingsRepository
+import com.ozin.music.core.ui.theme.AccentColorOption
+import com.ozin.music.core.ui.theme.ThemePreset
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -78,5 +80,13 @@ class SettingsViewModel @Inject constructor(
      * over the whole library as a one-shot plain-coroutine background task. */
     fun computeMoodTags() {
         viewModelScope.launch { songRepository.computeMoodTags() }
+    }
+
+    fun setThemePreset(preset: ThemePreset) {
+        viewModelScope.launch { settingsRepository.setThemePreset(preset) }
+    }
+
+    fun setAccentColorOption(option: AccentColorOption) {
+        viewModelScope.launch { settingsRepository.setAccentColorOption(option) }
     }
 }

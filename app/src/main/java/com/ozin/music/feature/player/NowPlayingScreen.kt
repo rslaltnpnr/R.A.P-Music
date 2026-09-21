@@ -63,6 +63,7 @@ import coil.request.ImageRequest
 import com.ozin.music.core.data.mediastore.MediaStoreScanner
 import com.ozin.music.core.domain.LrcParser
 import com.ozin.music.core.player.RepeatUiMode
+import com.ozin.music.core.settings.NowPlayingVisualMode
 import com.ozin.music.core.ui.RatingStars
 import kotlinx.coroutines.launch
 
@@ -77,6 +78,7 @@ fun NowPlayingScreen(
     val state by viewModel.playbackState.collectAsState()
     val lyrics by viewModel.lyrics.collectAsState()
     val playlists by viewModel.playlists.collectAsState()
+    val settings by viewModel.settings.collectAsState()
     val song = state.currentSong
     val context = LocalContext.current
     val scanner = remember(context) { MediaStoreScanner(context) }
@@ -177,18 +179,49 @@ fun NowPlayingScreen(
             return@Column
         }
 
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 32.dp)
-                .aspectRatio(1f)
-                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp)),
-        ) {
-            Image(
-                painter = rememberAsyncImagePainter(scanner.albumArtUri(song.albumId)),
-                contentDescription = song.title,
-                modifier = Modifier.fillMaxSize(),
-            )
+        NowPlayingModeSwitcher(
+            current = settings.nowPlayingVisualMode,
+            accentColor = accentColor,
+            onSelect = { viewModel.setVisualMode(it) },
+        )
+
+        when (settings.nowPlayingVisualMode) {
+            NowPlayingVisualMode.DEFAULT -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 32.dp)
+                        .aspectRatio(1f)
+                        .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp)),
+                ) {
+                    Image(
+                        painter = rememberAsyncImagePainter(scanner.albumArtUri(song.albumId)),
+                        contentDescription = song.title,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+            }
+            NowPlayingVisualMode.VINYL -> {
+                VinylVisualMode(
+                    albumArtUri = scanner.albumArtUri(song.albumId),
+                    isPlaying = state.isPlaying,
+                    accentColor = accentColor,
+                )
+            }
+            NowPlayingVisualMode.CASSETTE -> {
+                CassetteVisualMode(
+                    isPlaying = state.isPlaying,
+                    accentColor = accentColor,
+                )
+            }
+            NowPlayingVisualMode.VISUALIZER -> {
+                VisualizerVisualMode(
+                    songId = song.id,
+                    positionMs = state.positionMs,
+                    isPlaying = state.isPlaying,
+                    accentColor = accentColor,
+                )
+            }
         }
 
         Text(song.title, style = MaterialTheme.typography.headlineSmall, color = Color.White)

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,6 +38,8 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.ui.res.stringResource
 import com.ozin.music.core.player.PlayerController
+import com.ozin.music.core.settings.AppSettings
+import com.ozin.music.core.settings.SettingsRepository
 import com.ozin.music.core.ui.theme.OzinMusicTheme
 import com.ozin.music.feature.bluetooth.BluetoothDevicesScreen
 import com.ozin.music.feature.carmode.CarModeScreen
@@ -101,6 +104,7 @@ object Routes {
 class MainActivity : ComponentActivity() {
 
     @Inject lateinit var playerController: PlayerController
+    @Inject lateinit var settingsRepository: SettingsRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
@@ -108,7 +112,11 @@ class MainActivity : ComponentActivity() {
         playerController.connect()
 
         setContent {
-            OzinMusicTheme {
+            val appSettings by settingsRepository.settings.collectAsState(initial = AppSettings())
+            OzinMusicTheme(
+                preset = appSettings.themePreset,
+                accent = appSettings.accentColorOption.color,
+            ) {
                 var hasPermission by remember {
                     mutableStateOf(
                         ContextCompat.checkSelfPermission(this, audioPermissionName()) ==

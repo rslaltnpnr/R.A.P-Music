@@ -1,12 +1,17 @@
 package com.ozin.music.feature.settings
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -19,9 +24,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ozin.music.core.settings.RepeatMode
+import com.ozin.music.core.ui.theme.AccentColorOption
+import com.ozin.music.core.ui.theme.ThemePreset
 
 @Composable
 fun SettingsScreen(
@@ -121,6 +130,34 @@ fun SettingsScreen(
 
         Text("Network", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
         Button(onClick = onOpenRemoteServers) { Text("Network servers (WebDAV)") }
+
+        Text("Theme", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            ThemePreset.entries.forEach { preset ->
+                Button(onClick = { viewModel.setThemePreset(preset) }) {
+                    Text(preset.name.replace('_', ' ') + if (settings.themePreset == preset) " ✓" else "")
+                }
+            }
+        }
+
+        Text("Accent color", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            AccentColorOption.entries.forEach { option ->
+                val selected = settings.accentColorOption == option
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(option.color)
+                        .border(
+                            width = if (selected) 3.dp else 0.dp,
+                            color = if (selected) Color.White else Color.Transparent,
+                            shape = CircleShape,
+                        )
+                        .clickable { viewModel.setAccentColorOption(option) },
+                )
+            }
+        }
     }
 }
 
