@@ -46,7 +46,7 @@ class StatsViewModel @Inject constructor(
         val s = summary.value
         val minutes = s.totalListenedMs / 60_000
         val builder = StringBuilder()
-        builder.append("OZIN Music — ${s.range.name} dinleme özeti\n")
+        builder.append("R.A.P Music — ${s.range.name} dinleme özeti\n")
         builder.append("Toplam dinleme: ${minutes} dk\n")
         if (s.topSongs.isNotEmpty()) {
             builder.append("En çok dinlenenler:\n")

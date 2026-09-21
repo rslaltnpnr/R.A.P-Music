@@ -288,7 +288,12 @@ class PlayerController @Inject constructor(
     private fun Song.toMediaItem(): MediaItem =
         MediaItem.Builder()
             .setMediaId(id.toString())
-            .setUri(android.net.Uri.fromFile(java.io.File(path)))
+            .setUri(
+                android.content.ContentUris.withAppendedId(
+                    android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                    id,
+                )
+            )
             .setMediaMetadata(
                 MediaMetadata.Builder()
                     .setTitle(title)

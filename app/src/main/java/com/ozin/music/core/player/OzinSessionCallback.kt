@@ -60,7 +60,7 @@ class OzinLibrarySessionCallback(
                 MediaMetadata.Builder()
                     .setIsBrowsable(true)
                     .setIsPlayable(false)
-                    .setTitle("OZIN Music")
+                    .setTitle("R.A.P Music")
                     .build()
             )
             .build()
