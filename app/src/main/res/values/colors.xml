@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ozin_background">#0B0F19</color>
+    <color name="ozin_card">#131B2E</color>
+    <color name="ozin_surface">#192238</color>
+    <color name="ozin_text_primary">#FFFFFF</color>
+    <color name="ozin_text_secondary">#B7C0D4</color>
+    <color name="ozin_accent">#7C4DFF</color>
+</resources>
