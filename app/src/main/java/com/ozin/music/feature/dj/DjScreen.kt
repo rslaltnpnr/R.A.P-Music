@@ -10,6 +10,7 @@ import androidx.core.content.ContextCompat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,6 +23,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FiberManualRecord
@@ -177,32 +180,79 @@ fun DjModeScreen(onExit: () -> Unit) {
             onAutomixClick = { showAutomixSheet = true },
             onExit = onExit,
         )
-        Row(modifier = Modifier.fillMaxSize()) {
-            DeckPanel(
-                deckId = DeckId.A,
-                viewModel = viewModel,
-                accent = DjColors.deckA,
-                proMode = proMode,
-                onOpenBrowser = { trackBrowserFor = DeckId.A },
-                modifier = Modifier.weight(1f),
-            )
-            MixerStrip(
-                viewModel = viewModel,
-                engineState = engineState,
-                proMode = proMode,
-                modifier = Modifier.width(140.dp),
-            )
-            DeckPanel(
-                deckId = DeckId.B,
-                viewModel = viewModel,
-                accent = DjColors.deckB,
-                proMode = proMode,
-                onOpenBrowser = { trackBrowserFor = DeckId.B },
-                modifier = Modifier.weight(1f),
-            )
-        }
-        if (proMode) {
-            SamplerRow(viewModel = viewModel, library = library)
+
+        // Adaptive layout: a real 3-column deck/mixer/deck Row only fits
+        // comfortably on a wide screen (landscape phone or tablet). On a
+        // narrow one (portrait phone) it gets crushed, so stack the two
+        // decks and the mixer vertically instead, in a scrollable column so
+        // nothing is ever clipped regardless of screen size.
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            val isWide = maxWidth >= 600.dp
+            if (isWide) {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    Row(modifier = Modifier.weight(1f)) {
+                        DeckPanel(
+                            deckId = DeckId.A,
+                            viewModel = viewModel,
+                            accent = DjColors.deckA,
+                            proMode = proMode,
+                            onOpenBrowser = { trackBrowserFor = DeckId.A },
+                            modifier = Modifier.weight(1f),
+                        )
+                        MixerStrip(
+                            viewModel = viewModel,
+                            engineState = engineState,
+                            proMode = proMode,
+                            modifier = Modifier.width(140.dp),
+                        )
+                        DeckPanel(
+                            deckId = DeckId.B,
+                            viewModel = viewModel,
+                            accent = DjColors.deckB,
+                            proMode = proMode,
+                            onOpenBrowser = { trackBrowserFor = DeckId.B },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                    if (proMode) {
+                        SamplerRow(viewModel = viewModel, library = library)
+                    }
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState()),
+                ) {
+                    DeckPanel(
+                        deckId = DeckId.A,
+                        viewModel = viewModel,
+                        accent = DjColors.deckA,
+                        proMode = proMode,
+                        onOpenBrowser = { trackBrowserFor = DeckId.A },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    MixerStrip(
+                        viewModel = viewModel,
+                        engineState = engineState,
+                        proMode = proMode,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(220.dp),
+                    )
+                    DeckPanel(
+                        deckId = DeckId.B,
+                        viewModel = viewModel,
+                        accent = DjColors.deckB,
+                        proMode = proMode,
+                        onOpenBrowser = { trackBrowserFor = DeckId.B },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    if (proMode) {
+                        SamplerRow(viewModel = viewModel, library = library)
+                    }
+                }
+            }
         }
     }
 }
