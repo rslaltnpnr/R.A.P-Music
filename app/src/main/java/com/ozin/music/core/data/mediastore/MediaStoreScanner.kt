@@ -23,7 +23,10 @@ class MediaStoreScanner @Inject constructor(
     @ApplicationContext private val context: Context,
 ) {
 
-    suspend fun scan(excludedFolders: Set<String>): List<Song> = withContext(Dispatchers.IO) {
+    suspend fun scan(
+        excludedFolders: Set<String>,
+        onRowError: (path: String?, error: Throwable) -> Unit = { _, _ -> },
+    ): List<Song> = withContext(Dispatchers.IO) {
         val result = mutableListOf<Song>()
         val collection = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
 
@@ -83,6 +86,8 @@ class MediaStoreScanner @Inject constructor(
                         )
                     } catch (rowError: Exception) {
                         Log.w(TAG, "Skipping unreadable media row", rowError)
+                        val path = runCatching { cursor.getString(dataCol) }.getOrNull()
+                        onRowError(path, rowError)
                     }
                 }
             }

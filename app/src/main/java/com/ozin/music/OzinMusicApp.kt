@@ -4,13 +4,27 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
+import com.ozin.music.core.data.mediastore.MediaStoreChangeWatcher
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.android.HiltAndroidApp
+import dagger.hilt.components.SingletonComponent
+
+@EntryPoint
+@InstallIn(SingletonComponent::class)
+interface OzinMusicAppEntryPoint {
+    fun mediaStoreChangeWatcher(): MediaStoreChangeWatcher
+}
 
 @HiltAndroidApp
 class OzinMusicApp : Application() {
     override fun onCreate() {
         super.onCreate()
         createPlaybackNotificationChannel()
+        EntryPointAccessors.fromApplication(this, OzinMusicAppEntryPoint::class.java)
+            .mediaStoreChangeWatcher()
+            .start()
     }
 
     private fun createPlaybackNotificationChannel() {

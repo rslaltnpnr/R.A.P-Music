@@ -14,6 +14,7 @@ class SongRepository @Inject constructor(
     private val songDao: SongDao,
     private val scanner: MediaStoreScanner,
     private val settingsRepository: SettingsRepository,
+    private val problemFileRepository: ProblemFileRepository,
 ) {
     val songs: Flow<List<Song>> = songDao.observeAll()
     val favorites: Flow<List<Song>> = songDao.observeFavorites()
@@ -28,7 +29,18 @@ class SongRepository @Inject constructor(
      * dropping rows for files that no longer exist. */
     suspend fun rescan() {
         val excluded = settingsRepository.settings.first().excludedFolders
-        val scanned = scanner.scan(excluded)
+        val scanned = scanner.scan(excluded) { path, error ->
+            if (path != null) {
+                kotlinx.coroutines.runBlocking {
+                    problemFileRepository.report(
+                        path = path,
+                        songId = null,
+                        title = path.substringAfterLast('/'),
+                        reason = error.message ?: error.javaClass.simpleName,
+                    )
+                }
+            }
+        }
         val existingIds = songDao.getAllIds().toSet()
         val scannedIds = scanned.map { it.id }.toSet()
 
@@ -53,6 +65,9 @@ class SongRepository @Inject constructor(
     }
 
     suspend fun setFavorite(songId: Long, favorite: Boolean) = songDao.setFavorite(songId, favorite)
+
+    /** Writes a metadata edit straight into Room so the UI refreshes without a full rescan. */
+    suspend fun applyMetadataEdit(song: Song) = songDao.update(song)
 
     suspend fun recordPlay(songId: Long) = songDao.recordPlay(songId, System.currentTimeMillis())
 }

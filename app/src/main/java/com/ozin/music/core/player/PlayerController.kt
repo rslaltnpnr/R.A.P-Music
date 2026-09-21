@@ -10,6 +10,7 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.MoreExecutors
 import com.ozin.music.core.data.model.Song
+import com.ozin.music.core.data.repository.ProblemFileRepository
 import com.ozin.music.core.data.repository.SongRepository
 import com.ozin.music.core.domain.AbRepeat
 import com.ozin.music.core.domain.AbRepeatState
@@ -50,6 +51,7 @@ data class PlaybackUiState(
 class PlayerController @Inject constructor(
     @ApplicationContext private val context: Context,
     private val songRepository: SongRepository,
+    private val problemFileRepository: ProblemFileRepository,
 ) {
     private val scope = CoroutineScope(Dispatchers.Main.immediate)
     private var controller: MediaController? = null
@@ -231,7 +233,19 @@ class PlayerController @Inject constructor(
 
         override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
             // Defensive: skip to next item rather than getting stuck on a
-            // deleted/corrupt file.
+            // deleted/corrupt file, and record it as a problem file so the
+            // user can review/remove/rescan it later.
+            val failedSong = _state.value.currentSong
+            if (failedSong != null) {
+                scope.launch {
+                    problemFileRepository.report(
+                        path = failedSong.path,
+                        songId = failedSong.id,
+                        title = failedSong.title,
+                        reason = error.message ?: error.errorCodeName,
+                    )
+                }
+            }
             controller?.seekToNextMediaItem()
         }
     }

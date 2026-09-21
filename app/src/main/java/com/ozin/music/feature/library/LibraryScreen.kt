@@ -56,7 +56,12 @@ import com.ozin.music.core.domain.SortOrder
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-fun LibraryScreen(onSongClick: () -> Unit, viewModel: LibraryViewModel = hiltViewModel()) {
+fun LibraryScreen(
+    onSongClick: () -> Unit,
+    onEditSong: (Long) -> Unit = {},
+    onManageFile: (Long) -> Unit = {},
+    viewModel: LibraryViewModel = hiltViewModel(),
+) {
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val scanner = remember(context) { MediaStoreScanner(context) }
@@ -207,6 +212,8 @@ fun LibraryScreen(onSongClick: () -> Unit, viewModel: LibraryViewModel = hiltVie
             onPlayNext = { viewModel.playNext(menuSong); songForMenu = null },
             onAddToQueue = { viewModel.addToQueue(menuSong); songForMenu = null },
             onAddToPlaylist = { playlistId -> viewModel.addToPlaylist(playlistId, menuSong); songForMenu = null },
+            onEditInfo = { onEditSong(menuSong.id); songForMenu = null },
+            onManageFile = { onManageFile(menuSong.id); songForMenu = null },
         )
     }
 }
@@ -284,11 +291,34 @@ private fun SongActionSheet(
     onPlayNext: () -> Unit,
     onAddToQueue: () -> Unit,
     onAddToPlaylist: (Long) -> Unit,
+    onEditInfo: () -> Unit = {},
+    onManageFile: () -> Unit = {},
 ) {
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(song.title, style = MaterialTheme.typography.titleMedium)
             Text(song.artist, color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onEditInfo)
+                    .padding(vertical = 12.dp),
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+            ) {
+                Icon(androidx.compose.material.icons.Icons.Filled.Edit, contentDescription = null)
+                Text("Edit song info", modifier = Modifier.padding(start = 16.dp))
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onManageFile)
+                    .padding(vertical = 12.dp),
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+            ) {
+                Icon(androidx.compose.material.icons.Icons.Filled.Folder, contentDescription = null)
+                Text("File management", modifier = Modifier.padding(start = 16.dp))
+            }
 
             Row(
                 modifier = Modifier

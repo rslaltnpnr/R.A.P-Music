@@ -37,8 +37,13 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.res.stringResource
 import com.ozin.music.core.player.PlayerController
 import com.ozin.music.core.ui.theme.OzinMusicTheme
+import com.ozin.music.feature.duplicates.DuplicatesScreen
+import com.ozin.music.feature.files.FileManagementSheet
+import com.ozin.music.feature.folders.FoldersScreen
 import com.ozin.music.feature.home.HomeScreen
 import com.ozin.music.feature.library.LibraryScreen
+import com.ozin.music.feature.lyrics.LyricsScreen
+import com.ozin.music.feature.metadata.MetadataEditScreen
 import com.ozin.music.feature.permission.PermissionScreen
 import com.ozin.music.feature.permission.audioPermissionName
 import com.ozin.music.feature.player.MiniPlayerBar
@@ -46,6 +51,7 @@ import com.ozin.music.feature.player.NowPlayingScreen
 import com.ozin.music.feature.playlist.EqualizerScreen
 import com.ozin.music.feature.playlist.PlaylistDetailScreen
 import com.ozin.music.feature.playlist.PlaylistsScreen
+import com.ozin.music.feature.problems.ProblemFilesScreen
 import com.ozin.music.feature.settings.SettingsScreen
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -57,8 +63,16 @@ object Routes {
     const val EQ = "eq"
     const val SETTINGS = "settings"
     const val NOW_PLAYING = "now_playing"
+    const val LYRICS = "lyrics"
+    const val FOLDERS = "folders"
+    const val PROBLEM_FILES = "problem_files"
+    const val DUPLICATES = "duplicates"
     const val PLAYLIST_DETAIL = "playlist/{playlistId}"
+    const val METADATA_EDIT = "metadata_edit/{songId}"
+    const val FILE_MANAGEMENT = "file_management/{songId}"
     fun playlistDetail(playlistId: Long) = "playlist/$playlistId"
+    fun metadataEdit(songId: Long) = "metadata_edit/$songId"
+    fun fileManagement(songId: Long) = "file_management/$songId"
 }
 
 @AndroidEntryPoint
@@ -117,13 +131,46 @@ private fun OzinApp() {
                 modifier = Modifier.padding(bottom = padding.calculateBottomPadding()),
             ) {
                 composable(Routes.HOME) { HomeScreen(onSongClick = { navController.navigate(Routes.NOW_PLAYING) }) }
-                composable(Routes.LIBRARY) { LibraryScreen(onSongClick = { navController.navigate(Routes.NOW_PLAYING) }) }
+                composable(Routes.LIBRARY) {
+                    LibraryScreen(
+                        onSongClick = { navController.navigate(Routes.NOW_PLAYING) },
+                        onEditSong = { songId -> navController.navigate(Routes.metadataEdit(songId)) },
+                        onManageFile = { songId -> navController.navigate(Routes.fileManagement(songId)) },
+                    )
+                }
                 composable(Routes.LISTS) {
                     PlaylistsScreen(onPlaylistClick = { id -> navController.navigate(Routes.playlistDetail(id)) })
                 }
                 composable(Routes.EQ) { EqualizerScreen() }
-                composable(Routes.SETTINGS) { SettingsScreen() }
-                composable(Routes.NOW_PLAYING) { NowPlayingScreen(onBack = { navController.popBackStack() }) }
+                composable(Routes.SETTINGS) {
+                    SettingsScreen(
+                        onOpenFolders = { navController.navigate(Routes.FOLDERS) },
+                        onOpenProblemFiles = { navController.navigate(Routes.PROBLEM_FILES) },
+                        onOpenDuplicates = { navController.navigate(Routes.DUPLICATES) },
+                    )
+                }
+                composable(Routes.NOW_PLAYING) {
+                    NowPlayingScreen(
+                        onBack = { navController.popBackStack() },
+                        onOpenLyrics = { navController.navigate(Routes.LYRICS) },
+                    )
+                }
+                composable(Routes.LYRICS) { LyricsScreen(onBack = { navController.popBackStack() }) }
+                composable(Routes.FOLDERS) { FoldersScreen() }
+                composable(Routes.PROBLEM_FILES) { ProblemFilesScreen() }
+                composable(Routes.DUPLICATES) { DuplicatesScreen() }
+                composable(
+                    route = Routes.METADATA_EDIT,
+                    arguments = listOf(navArgument("songId") { type = NavType.LongType }),
+                ) {
+                    MetadataEditScreen(onBack = { navController.popBackStack() })
+                }
+                composable(
+                    route = Routes.FILE_MANAGEMENT,
+                    arguments = listOf(navArgument("songId") { type = NavType.LongType }),
+                ) {
+                    FileManagementSheet(onDismiss = { navController.popBackStack() })
+                }
                 composable(
                     route = Routes.PLAYLIST_DETAIL,
                     arguments = listOf(navArgument("playlistId") { type = NavType.LongType }),

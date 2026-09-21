@@ -25,4 +25,7 @@ object DatabaseModule {
 
     @Provides
     fun providePlaylistDao(database: OzinDatabase): PlaylistDao = database.playlistDao()
+
+    @Provides
+    fun provideProblemFileDao(database: OzinDatabase): ProblemFileDao = database.problemFileDao()
 }

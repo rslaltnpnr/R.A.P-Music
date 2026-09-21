@@ -36,6 +36,7 @@ data class AppSettings(
     val bassBoostStrength: Int = 0,
     val virtualizerStrength: Int = 0,
     val loudnessGainMb: Int = 0,
+    val lyricsOffsetMs: Int = 0,
 )
 
 @Singleton
@@ -59,6 +60,7 @@ class SettingsRepository @Inject constructor(
         val BASS_BOOST_STRENGTH = intPreferencesKey("bass_boost_strength")
         val VIRTUALIZER_STRENGTH = intPreferencesKey("virtualizer_strength")
         val LOUDNESS_GAIN_MB = intPreferencesKey("loudness_gain_mb")
+        val LYRICS_OFFSET_MS = intPreferencesKey("lyrics_offset_ms")
     }
 
     val settings: Flow<AppSettings> = context.dataStore.data.map { prefs ->
@@ -84,6 +86,7 @@ class SettingsRepository @Inject constructor(
             bassBoostStrength = prefs[Keys.BASS_BOOST_STRENGTH] ?: 0,
             virtualizerStrength = prefs[Keys.VIRTUALIZER_STRENGTH] ?: 0,
             loudnessGainMb = prefs[Keys.LOUDNESS_GAIN_MB] ?: 0,
+            lyricsOffsetMs = prefs[Keys.LYRICS_OFFSET_MS] ?: 0,
         )
     }
 
@@ -153,5 +156,16 @@ class SettingsRepository @Inject constructor(
 
     suspend fun setLoudnessGainMb(mb: Int) {
         context.dataStore.edit { it[Keys.LOUDNESS_GAIN_MB] = mb }
+    }
+
+    suspend fun adjustLyricsOffset(deltaMs: Int) {
+        context.dataStore.edit {
+            it[Keys.LYRICS_OFFSET_MS] = (it[Keys.LYRICS_OFFSET_MS] ?: 0) + deltaMs
+        }
+    }
+
+    suspend fun addExcludedFolders(paths: Collection<String>) {
+        if (paths.isEmpty()) return
+        context.dataStore.edit { it[Keys.EXCLUDED_FOLDERS] = (it[Keys.EXCLUDED_FOLDERS] ?: emptySet()) + paths }
     }
 }
