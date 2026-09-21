@@ -14,7 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,7 +28,11 @@ import coil.compose.AsyncImage
 import com.ozin.music.R
 import com.ozin.music.core.data.mediastore.MediaStoreScanner
 import com.ozin.music.core.data.model.Song
+import com.ozin.music.core.ui.components.SectionHeader
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import com.ozin.music.core.ui.theme.Spacing
 
 @Composable
 fun HomeScreen(onSongClick: () -> Unit, viewModel: HomeViewModel = hiltViewModel()) {
@@ -38,8 +42,8 @@ fun HomeScreen(onSongClick: () -> Unit, viewModel: HomeViewModel = hiltViewModel
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp),
+            .padding(Spacing.lg),
+        verticalArrangement = Arrangement.spacedBy(Spacing.xl),
     ) {
         item {
             Text(
@@ -77,9 +81,9 @@ private fun HomeSection(title: String, songs: List<Song>, onClick: (Song) -> Uni
     val context = LocalContext.current
     val scanner = remember(context) { MediaStoreScanner(context) }
     Column {
-        Text(text = title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
-        androidx.compose.foundation.layout.Spacer(modifier = Modifier.padding(4.dp))
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        SectionHeader(title = title)
+        androidx.compose.foundation.layout.Spacer(modifier = Modifier.padding(Spacing.xs))
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(Spacing.md)) {
             items(songs, key = { it.id }) { song ->
                 Column(
                     modifier = Modifier
@@ -89,9 +93,13 @@ private fun HomeSection(title: String, songs: List<Song>, onClick: (Song) -> Uni
                     AsyncImage(
                         model = scanner.albumArtUri(song.albumId),
                         contentDescription = song.title,
+                        placeholder = painterResource(R.drawable.default_artwork),
+                        error = painterResource(R.drawable.default_artwork),
+                        contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .size(120.dp)
-                            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp)),
+                            .background(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.shapes.medium)
+                            .clip(MaterialTheme.shapes.medium),
                     )
                     Text(
                         text = song.title,
