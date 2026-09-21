@@ -170,9 +170,14 @@ private fun OzinApp() {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
 
+    // Full-screen, immersive destinations manage their own exit affordance and
+    // must never show the main app's mini player / bottom nav underneath them
+    // (it used to overlap DJ Mode's controls at the bottom of the screen).
+    val hideChromeFor = setOf(Routes.NOW_PLAYING, Routes.DJ_MODE, Routes.CAR_MODE)
+
     Scaffold(
         bottomBar = {
-            if (currentRoute != Routes.NOW_PLAYING) {
+            if (currentRoute !in hideChromeFor) {
                 Column {
                     MiniPlayerBar(onExpand = { navController.navigate(Routes.NOW_PLAYING) })
                     OzinBottomNav(navController, currentRoute)
