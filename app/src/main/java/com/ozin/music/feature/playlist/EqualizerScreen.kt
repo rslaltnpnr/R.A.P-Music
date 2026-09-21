@@ -48,7 +48,7 @@ fun EqualizerScreen(viewModel: EqualizerViewModel = hiltViewModel()) {
 
         Text("Presets", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(EqPresetId.entries) { preset ->
+            items(EqPresetId.entries, key = { it.name }) { preset ->
                 Button(onClick = { viewModel.applyPreset(preset) }) {
                     Text(preset.name.replace('_', ' ') + if (settings.eqPreset == preset) " ✓" else "")
                 }
