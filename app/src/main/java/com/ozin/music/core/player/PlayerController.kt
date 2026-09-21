@@ -425,9 +425,7 @@ class PlayerController @Inject constructor(
     private fun syncFromPlayer() {
         val ctrl = controller ?: return
         val mediaId = ctrl.currentMediaItem?.mediaId?.toLongOrNull()
-        val song = mediaId?.let { id -> songCache[id] ?: runCatching {
-            kotlinx.coroutines.runBlocking { songRepository.getById(id) }
-        }.getOrNull() }
+        val song = mediaId?.let { songCache[it] }
 
         val queue = (0 until ctrl.mediaItemCount).mapNotNull { index ->
             ctrl.getMediaItemAt(index).mediaId.toLongOrNull()?.let { songCache[it] }
@@ -447,6 +445,21 @@ class PlayerController @Inject constructor(
             queue = queue,
             currentIndex = ctrl.currentMediaItemIndex,
         )
+
+        // songCache misses happen after a process-death session restore
+        // (queue rebuilt by Media3 itself, not by our own playSongs()/
+        // playRemoteFiles() calls that populate the cache). Resolve the
+        // missing song from Room asynchronously rather than blocking this
+        // main-thread player callback with runBlocking.
+        if (mediaId != null && song == null) {
+            scope.launch {
+                val resolved = runCatching { songRepository.getById(mediaId) }.getOrNull() ?: return@launch
+                songCache[mediaId] = resolved
+                if (controller?.currentMediaItem?.mediaId?.toLongOrNull() == mediaId) {
+                    _state.value = _state.value.copy(currentSong = resolved)
+                }
+            }
+        }
     }
 
     /** Re-resolves (read-only, no MediaItem patching) which artwork tier
