@@ -160,4 +160,40 @@
     <string name="playlist_remove_selected">Çalma listesinden kaldır</string>
     <string name="playlist_cancel_selection">Seçimi iptal et</string>
     <string name="playlist_batch_remove_result_format">%1$d şarkı kaldırıldı, %2$d başarısız</string>
+
+    <!-- DJ Mode -->
+    <string name="dj_mode_title">DJ Modu</string>
+    <string name="dj_basic">Temel</string>
+    <string name="dj_pro">Pro</string>
+    <string name="dj_automix">Otomiks</string>
+    <string name="dj_record">Kayıt</string>
+    <string name="dj_close">Kapat</string>
+    <string name="dj_ok">Tamam</string>
+    <string name="dj_cancel">İptal</string>
+    <string name="dj_continue">Devam</string>
+    <string name="dj_sync">Senkron</string>
+    <string name="dj_bpm_unknown">Bir veya iki deck için BPM bilinmiyor — Senkron için parça etiketlerinden bilinen bir BPM gerekir.</string>
+    <string name="dj_record_consent_explainer">Sadece bu uygulamanın sesi kaydedilse de Android ekran kaydı benzeri bir izin penceresi gösterecek. Bu, sistemin oynatma sesini kaydedebilmesi için gereklidir.</string>
+    <string name="dj_no_track_loaded">Parça yüklenmedi</string>
+    <string name="dj_load_track">Parça yükle</string>
+    <string name="dj_play">Çal</string>
+    <string name="dj_cue">Cue</string>
+    <string name="dj_hot_cues">Hot cue\'lar</string>
+    <string name="dj_loop_in">Loop Başlangıç</string>
+    <string name="dj_loop_out">Loop Bitiş</string>
+    <string name="dj_loop_exit">Loop\'tan Çık</string>
+    <string name="dj_reloop">Reloop</string>
+    <string name="dj_auto_loop_4">4 vuruş</string>
+    <string name="dj_mixer">Mikser</string>
+    <string name="dj_crossfader">Crossfader</string>
+    <string name="dj_gain">Kazanç</string>
+    <string name="dj_high">Tiz</string>
+    <string name="dj_mid">Orta</string>
+    <string name="dj_low">Bas</string>
+    <string name="dj_filter">Filtre</string>
+    <string name="dj_search_library">Kütüphanede ara</string>
+    <string name="dj_automix_enable">Otomiksi Etkinleştir</string>
+    <string name="dj_automix_prefer_favorites">Favorileri tercih et</string>
+    <string name="dj_automix_transition">Geçiş süresi</string>
+    <string name="nav_dj_mode">DJ Modu</string>
 </resources>

@@ -45,6 +45,7 @@ fun SettingsScreen(
     onOpenBluetoothDevices: () -> Unit = {},
     onOpenRemoteServers: () -> Unit = {},
     onOpenSmartSearch: () -> Unit = {},
+    onOpenDjMode: () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val settings by viewModel.settings.collectAsState()
@@ -143,6 +144,7 @@ fun SettingsScreen(
 
         Text(stringResource(R.string.settings_car_bluetooth), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
         Button(onClick = onOpenBluetoothDevices) { Text(stringResource(R.string.settings_bluetooth_device_profiles)) }
+        Button(onClick = onOpenDjMode) { Text(stringResource(R.string.nav_dj_mode)) }
 
         Text(stringResource(R.string.settings_network), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
         Button(onClick = onOpenRemoteServers) { Text(stringResource(R.string.settings_network_servers)) }
