@@ -1,4 +1,5 @@
 import java.io.FileInputStream
+import java.time.LocalDate
 import java.util.Properties
 
 plugins {
@@ -12,8 +13,8 @@ plugins {
 // versionCode: a simple, monotonically increasing timestamp-derived scheme
 // (days since 2024-01-01), documented in README.md.
 val versionCodeValue: Int = run {
-    val epochDay = java.time.LocalDate.now().toEpochDay()
-    val baseDay = java.time.LocalDate.of(2024, 1, 1).toEpochDay()
+    val epochDay = LocalDate.now().toEpochDay()
+    val baseDay = LocalDate.of(2024, 1, 1).toEpochDay()
     (epochDay - baseDay).toInt().coerceAtLeast(1)
 }
 
