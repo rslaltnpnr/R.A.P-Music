@@ -30,6 +30,7 @@ fun SettingsScreen(
     onOpenDuplicates: () -> Unit = {},
     onOpenStats: () -> Unit = {},
     onOpenBluetoothDevices: () -> Unit = {},
+    onOpenRemoteServers: () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val settings by viewModel.settings.collectAsState()
@@ -104,6 +105,9 @@ fun SettingsScreen(
 
         Text("Car & Bluetooth", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
         Button(onClick = onOpenBluetoothDevices) { Text("Bluetooth device profiles") }
+
+        Text("Network", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
+        Button(onClick = onOpenRemoteServers) { Text("Network servers (WebDAV)") }
     }
 }
 

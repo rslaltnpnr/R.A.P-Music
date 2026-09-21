@@ -16,6 +16,9 @@ import com.ozin.music.core.domain.AbRepeat
 import com.ozin.music.core.domain.AbRepeatState
 import com.ozin.music.core.domain.PlaybackSpeed
 import com.ozin.music.core.domain.RatingValidator
+import com.ozin.music.core.remote.RemoteAudioFile
+import com.ozin.music.core.remote.RemoteMusicSource
+import com.ozin.music.core.remote.RemoteServerConfig
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -92,6 +95,61 @@ class PlayerController @Inject constructor(
         ctrl.prepare()
         ctrl.play()
     }
+
+    /**
+     * Plays a browsed remote (WebDAV) directory listing through the exact
+     * same MediaController/ExoPlayer queue as local songs — no parallel
+     * playback path. Each file is wrapped in a synthetic [Song] (cached like
+     * any local one) so the whole existing UI/queue/now-playing pipeline
+     * works unchanged; only its [Song.path] is an http(s) URL. Real per-host
+     * Basic auth for the HTTP GET is applied by the data source configured
+     * in [PlayerModule], not here.
+     */
+    fun playRemoteFiles(
+        files: List<RemoteAudioFile>,
+        config: RemoteServerConfig,
+        startIndex: Int,
+        source: RemoteMusicSource,
+    ) {
+        val ctrl = controller ?: return
+        val items = files.map { file ->
+            val uri = source.streamUri(config, file)
+            val id = remoteMediaId(config.id, file.path)
+            val song = Song(
+                id = id,
+                title = file.name.substringBeforeLast('.', file.name),
+                artist = "Network",
+                album = config.name,
+                albumId = 0L,
+                durationMs = 0L,
+                path = uri.toString(),
+                sizeBytes = file.sizeBytes ?: 0L,
+                year = 0,
+                trackNumber = 0,
+                dateAdded = System.currentTimeMillis(),
+            )
+            songCache[id] = song
+            MediaItem.Builder()
+                .setMediaId(id.toString())
+                .setUri(uri)
+                .setMediaMetadata(
+                    MediaMetadata.Builder()
+                        .setTitle(song.title)
+                        .setArtist(song.artist)
+                        .setAlbumTitle(song.album)
+                        .build()
+                )
+                .build()
+        }
+        ctrl.setMediaItems(items, startIndex.coerceIn(0, (items.size - 1).coerceAtLeast(0)), 0L)
+        ctrl.prepare()
+        ctrl.play()
+    }
+
+    /** Deterministic negative id (local songs are always >= 0) so remote and
+     * local tracks never collide in [songCache]. */
+    private fun remoteMediaId(serverId: Long, filePath: String): Long =
+        -(kotlin.math.abs(31L * serverId + filePath.hashCode())).coerceAtLeast(1L)
 
     fun togglePlayPause() {
         val ctrl = controller ?: return
