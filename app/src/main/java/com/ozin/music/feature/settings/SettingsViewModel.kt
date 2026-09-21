@@ -5,7 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.ozin.music.core.data.repository.SongRepository
 import androidx.appcompat.app.AppCompatDelegate
 import com.ozin.music.core.settings.AppSettings
+import com.ozin.music.core.settings.ArtworkQuality
 import com.ozin.music.core.settings.LanguageOption
+import com.ozin.music.core.settings.LockScreenPrivacy
 import com.ozin.music.core.settings.RepeatMode
 import com.ozin.music.core.settings.SettingsRepository
 import com.ozin.music.core.settings.toLocaleListCompat
@@ -104,5 +106,25 @@ class SettingsViewModel @Inject constructor(
     fun setLanguageOption(option: LanguageOption) {
         viewModelScope.launch { settingsRepository.setLanguageOption(option) }
         AppCompatDelegate.setApplicationLocales(option.toLocaleListCompat())
+    }
+
+    fun toggleLockScreenShowArtwork(enabled: Boolean) {
+        viewModelScope.launch { settingsRepository.setLockScreenShowArtwork(enabled) }
+    }
+
+    fun toggleLockScreenShowMediaInfo(enabled: Boolean) {
+        viewModelScope.launch { settingsRepository.setLockScreenShowMediaInfo(enabled) }
+    }
+
+    fun setArtworkQuality(quality: ArtworkQuality) {
+        viewModelScope.launch { settingsRepository.setArtworkQuality(quality) }
+    }
+
+    fun setLockScreenPrivacy(privacy: LockScreenPrivacy) {
+        viewModelScope.launch { settingsRepository.setLockScreenPrivacy(privacy) }
+    }
+
+    fun toggleNowPlayingGestures(enabled: Boolean) {
+        viewModelScope.launch { settingsRepository.setNowPlayingGesturesEnabled(enabled) }
     }
 }

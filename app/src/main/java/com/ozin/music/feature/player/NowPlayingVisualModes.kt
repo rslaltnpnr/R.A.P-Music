@@ -1,11 +1,15 @@
 package com.ozin.music.feature.player
 
+import android.os.Build
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,11 +27,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
@@ -209,6 +215,87 @@ fun CassetteVisualMode(
     }
 }
 
+/** Art-forward mode: the album art fills most of the screen width, crossfading
+ * between songs (item 6). Minimal chrome is added by the caller in
+ * [NowPlayingScreen] (title/artist/controls only, no extra visual gimmick). */
+@Composable
+fun FullArtVisualMode(
+    albumArtKey: Any?,
+    albumArtUri: android.net.Uri?,
+    modifier: Modifier = Modifier,
+) {
+    Crossfade(
+        targetState = albumArtKey to albumArtUri,
+        animationSpec = tween(durationMillis = 400),
+        label = "fullArtCrossfade",
+    ) { (_, uri) ->
+        Image(
+            painter = rememberAsyncImagePainter(uri),
+            contentDescription = stringResource(R.string.player_album_art),
+            modifier = modifier
+                .fillMaxWidth()
+                .aspectRatio(1f)
+                .clip(RoundedCornerShape(20.dp)),
+            contentScale = ContentScale.Crop,
+        )
+    }
+}
+
+/** Minimal mode: a smaller, simple square art tile — the caller keeps the
+ * rest of the screen down to title/artist/core transport controls only. */
+@Composable
+fun MinimalVisualMode(
+    albumArtUri: android.net.Uri?,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 16.dp)
+            .aspectRatio(1f)
+            .clip(RoundedCornerShape(12.dp)),
+    ) {
+        Image(
+            painter = rememberAsyncImagePainter(albumArtUri),
+            contentDescription = stringResource(R.string.player_album_art),
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop,
+        )
+    }
+}
+
+/**
+ * Full-screen blurred/darkened album-art backdrop behind [content]. Uses
+ * Compose's `Modifier.blur()` (API 31+); below API 31 it falls back to a
+ * darker overlay over the unblurred image rather than pulling in a
+ * RenderScript dependency, per this feature's constraints.
+ */
+@Composable
+fun BlurArtBackground(
+    albumArtUri: android.net.Uri?,
+    modifier: Modifier = Modifier,
+    content: @Composable BoxScope.() -> Unit,
+) {
+    Box(modifier = modifier.fillMaxSize()) {
+        val painter = rememberAsyncImagePainter(albumArtUri)
+        val canBlur = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+        Image(
+            painter = painter,
+            contentDescription = null,
+            modifier = Modifier
+                .fillMaxSize()
+                .let { if (canBlur) it.blur(48.dp) else it },
+            contentScale = ContentScale.Crop,
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = if (canBlur) 0.35f else 0.68f)),
+        )
+        content()
+    }
+}
+
 /** A row of text labels to switch between Now Playing visual modes; the
  * currently active mode is highlighted with the given accent. */
 @Composable
@@ -242,4 +329,7 @@ private fun modeLabel(mode: NowPlayingVisualMode): String = when (mode) {
     NowPlayingVisualMode.VINYL -> stringResource(R.string.player_mode_vinyl)
     NowPlayingVisualMode.CASSETTE -> stringResource(R.string.player_mode_cassette)
     NowPlayingVisualMode.VISUALIZER -> stringResource(R.string.player_mode_visualizer)
+    NowPlayingVisualMode.FULL_ART -> stringResource(R.string.player_mode_full_art)
+    NowPlayingVisualMode.BLUR -> stringResource(R.string.player_mode_blur)
+    NowPlayingVisualMode.MINIMAL -> stringResource(R.string.player_mode_minimal)
 }

@@ -37,8 +37,23 @@ fun LanguageOption.toLocaleListCompat(): LocaleListCompat = when (this) {
 }
 
 /** Alternate Now Playing visual modes selectable alongside the original
- * default view (Phase 9). */
-enum class NowPlayingVisualMode { DEFAULT, VINYL, CASSETTE, VISUALIZER }
+ * default view (Phase 9). FULL_ART, BLUR and MINIMAL were added alongside
+ * the originals; VINYL/CASSETTE/VISUALIZER internals are untouched. */
+enum class NowPlayingVisualMode { DEFAULT, VINYL, CASSETTE, VISUALIZER, FULL_ART, BLUR, MINIMAL }
+
+/** How much artwork resolution/downsampling [com.ozin.music.core.domain.ArtworkResolver]
+ * applies before handing a bitmap/URI to the system MediaMetadata (lock
+ * screen/notification). HIGH uses the original embedded/MediaStore art
+ * directly; BALANCED and AUTO downsample it first (see ArtworkResolver for
+ * the exact target sizes of each tier). */
+enum class ArtworkQuality { AUTO, HIGH, BALANCED }
+
+/** Lock-screen/notification privacy tier enforced in the real MediaMetadata-
+ * building path ([com.ozin.music.core.player.MediaItemFactory]), not a
+ * cosmetic no-op: HIDE_ARTWORK forces the default artwork, HIDE_METADATA
+ * forces a generic title (artist is also generalized, see MediaItemFactory),
+ * PRIVATE combines both. */
+enum class LockScreenPrivacy { NORMAL, HIDE_ARTWORK, HIDE_METADATA, PRIVATE }
 
 data class AppSettings(
     val excludedFolders: Set<String> = emptySet(),
@@ -65,6 +80,12 @@ data class AppSettings(
     val accentColorOption: AccentColorOption = AccentColorOption.PURPLE,
     val nowPlayingVisualMode: NowPlayingVisualMode = NowPlayingVisualMode.DEFAULT,
     val languageOption: LanguageOption = LanguageOption.SYSTEM,
+    // Lock screen (Phase 11)
+    val lockScreenShowArtwork: Boolean = true,
+    val lockScreenShowMediaInfo: Boolean = true,
+    val artworkQuality: ArtworkQuality = ArtworkQuality.AUTO,
+    val lockScreenPrivacy: LockScreenPrivacy = LockScreenPrivacy.NORMAL,
+    val nowPlayingGesturesEnabled: Boolean = true,
 )
 
 @Singleton
@@ -94,6 +115,11 @@ class SettingsRepository @Inject constructor(
         val ACCENT_COLOR = stringPreferencesKey("accent_color")
         val NOW_PLAYING_VISUAL_MODE = stringPreferencesKey("now_playing_visual_mode")
         val LANGUAGE_OPTION = stringPreferencesKey("language_option")
+        val LOCK_SCREEN_SHOW_ARTWORK = booleanPreferencesKey("lock_screen_show_artwork")
+        val LOCK_SCREEN_SHOW_MEDIA_INFO = booleanPreferencesKey("lock_screen_show_media_info")
+        val ARTWORK_QUALITY = stringPreferencesKey("artwork_quality")
+        val LOCK_SCREEN_PRIVACY = stringPreferencesKey("lock_screen_privacy")
+        val NOW_PLAYING_GESTURES_ENABLED = booleanPreferencesKey("now_playing_gestures_enabled")
     }
 
     val settings: Flow<AppSettings> = context.dataStore.data.map { prefs ->
@@ -137,6 +163,15 @@ class SettingsRepository @Inject constructor(
             languageOption = runCatching {
                 LanguageOption.valueOf(prefs[Keys.LANGUAGE_OPTION] ?: LanguageOption.SYSTEM.name)
             }.getOrDefault(LanguageOption.SYSTEM),
+            lockScreenShowArtwork = prefs[Keys.LOCK_SCREEN_SHOW_ARTWORK] ?: true,
+            lockScreenShowMediaInfo = prefs[Keys.LOCK_SCREEN_SHOW_MEDIA_INFO] ?: true,
+            artworkQuality = runCatching {
+                ArtworkQuality.valueOf(prefs[Keys.ARTWORK_QUALITY] ?: ArtworkQuality.AUTO.name)
+            }.getOrDefault(ArtworkQuality.AUTO),
+            lockScreenPrivacy = runCatching {
+                LockScreenPrivacy.valueOf(prefs[Keys.LOCK_SCREEN_PRIVACY] ?: LockScreenPrivacy.NORMAL.name)
+            }.getOrDefault(LockScreenPrivacy.NORMAL),
+            nowPlayingGesturesEnabled = prefs[Keys.NOW_PLAYING_GESTURES_ENABLED] ?: true,
         )
     }
 
@@ -237,5 +272,25 @@ class SettingsRepository @Inject constructor(
 
     suspend fun setLanguageOption(option: LanguageOption) {
         context.dataStore.edit { it[Keys.LANGUAGE_OPTION] = option.name }
+    }
+
+    suspend fun setLockScreenShowArtwork(enabled: Boolean) {
+        context.dataStore.edit { it[Keys.LOCK_SCREEN_SHOW_ARTWORK] = enabled }
+    }
+
+    suspend fun setLockScreenShowMediaInfo(enabled: Boolean) {
+        context.dataStore.edit { it[Keys.LOCK_SCREEN_SHOW_MEDIA_INFO] = enabled }
+    }
+
+    suspend fun setArtworkQuality(quality: ArtworkQuality) {
+        context.dataStore.edit { it[Keys.ARTWORK_QUALITY] = quality.name }
+    }
+
+    suspend fun setLockScreenPrivacy(privacy: LockScreenPrivacy) {
+        context.dataStore.edit { it[Keys.LOCK_SCREEN_PRIVACY] = privacy.name }
+    }
+
+    suspend fun setNowPlayingGesturesEnabled(enabled: Boolean) {
+        context.dataStore.edit { it[Keys.NOW_PLAYING_GESTURES_ENABLED] = enabled }
     }
 }

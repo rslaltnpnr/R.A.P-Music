@@ -1,10 +1,15 @@
 package com.ozin.music.feature.player
 
 import android.graphics.Bitmap
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +19,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
@@ -63,10 +70,14 @@ import coil.imageLoader
 import coil.request.ImageRequest
 import com.ozin.music.R
 import com.ozin.music.core.data.mediastore.MediaStoreScanner
+import com.ozin.music.core.domain.AudioOutputDetector
 import com.ozin.music.core.domain.LrcParser
 import com.ozin.music.core.player.RepeatUiMode
 import com.ozin.music.core.settings.NowPlayingVisualMode
 import com.ozin.music.core.ui.RatingStars
+import com.ozin.music.feature.debug.audioOutputLabel
+import kotlin.math.abs
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -84,11 +95,20 @@ fun NowPlayingScreen(
     val song = state.currentSong
     val context = LocalContext.current
     val scanner = remember(context) { MediaStoreScanner(context) }
+    val audioOutputDetector = remember(context) { AudioOutputDetector(context) }
     var accentColor by remember { mutableStateOf(Color(0xFF7C4DFF)) }
     var showQueue by remember { mutableStateOf(false) }
     var showAddToPlaylist by remember { mutableStateOf(false) }
     var showMoreMenu by remember { mutableStateOf(false) }
+    var audioOutput by remember { mutableStateOf(com.ozin.music.core.domain.AudioOutputKind.THIS_DEVICE) }
     val scope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            audioOutput = audioOutputDetector.currentOutput()
+            delay(2_000)
+        }
+    }
 
     LaunchedEffect(song?.albumId) {
         if (song == null) return@LaunchedEffect
@@ -203,6 +223,53 @@ fun NowPlayingScreen(
             onSelect = { viewModel.setVisualMode(it) },
         )
 
+        val gesturesEnabled = settings.nowPlayingGesturesEnabled
+        val gestureModifier = if (!gesturesEnabled) {
+            Modifier
+        } else {
+            Modifier
+                .pointerInput(song.id) {
+                    detectTapGestures(
+                        onDoubleTap = { viewModel.toggleFavorite() },
+                        onLongPress = { showMoreMenu = true },
+                    )
+                }
+                .pointerInput(song.id) {
+                    var horizontalAccum = 0f
+                    detectHorizontalDragGestures(
+                        onDragStart = { horizontalAccum = 0f },
+                        onHorizontalDrag = { change, dragAmount ->
+                            change.consume()
+                            horizontalAccum += dragAmount
+                        },
+                        onDragEnd = {
+                            if (abs(horizontalAccum) > SWIPE_TRIGGER_PX) {
+                                if (horizontalAccum < 0) viewModel.next() else viewModel.previous()
+                            }
+                        },
+                    )
+                }
+                .pointerInput(song.id) {
+                    var verticalAccum = 0f
+                    detectVerticalDragGestures(
+                        onDragStart = { verticalAccum = 0f },
+                        onVerticalDrag = { change, dragAmount ->
+                            change.consume()
+                            verticalAccum += dragAmount
+                        },
+                        onDragEnd = {
+                            if (verticalAccum > SWIPE_TRIGGER_PX) onBack()
+                        },
+                    )
+                }
+        }
+
+        val defaultArtRequest = ImageRequest.Builder(context)
+            .data(scanner.albumArtUri(song.albumId))
+            .placeholder(R.drawable.default_artwork)
+            .error(R.drawable.default_artwork)
+            .build()
+
         when (settings.nowPlayingVisualMode) {
             NowPlayingVisualMode.DEFAULT -> {
                 Box(
@@ -210,21 +277,27 @@ fun NowPlayingScreen(
                         .fillMaxWidth()
                         .padding(vertical = 32.dp)
                         .aspectRatio(1f)
-                        .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp)),
+                        .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp))
+                        .then(gestureModifier),
                 ) {
-                    Image(
-                        painter = rememberAsyncImagePainter(scanner.albumArtUri(song.albumId)),
-                        contentDescription = song.title,
-                        modifier = Modifier.fillMaxSize(),
-                    )
+                    Crossfade(targetState = song.albumId, animationSpec = tween(400), label = "artCrossfade") { _ ->
+                        Image(
+                            painter = rememberAsyncImagePainter(defaultArtRequest),
+                            contentDescription = song.title,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop,
+                        )
+                    }
                 }
             }
             NowPlayingVisualMode.VINYL -> {
-                VinylVisualMode(
-                    albumArtUri = scanner.albumArtUri(song.albumId),
-                    isPlaying = state.isPlaying,
-                    accentColor = accentColor,
-                )
+                Box(modifier = gestureModifier) {
+                    VinylVisualMode(
+                        albumArtUri = scanner.albumArtUri(song.albumId),
+                        isPlaying = state.isPlaying,
+                        accentColor = accentColor,
+                    )
+                }
             }
             NowPlayingVisualMode.CASSETTE -> {
                 CassetteVisualMode(
@@ -240,6 +313,52 @@ fun NowPlayingScreen(
                     accentColor = accentColor,
                 )
             }
+            NowPlayingVisualMode.FULL_ART -> {
+                Box(modifier = gestureModifier) {
+                    FullArtVisualMode(
+                        albumArtKey = song.albumId,
+                        albumArtUri = scanner.albumArtUri(song.albumId),
+                    )
+                }
+            }
+            NowPlayingVisualMode.BLUR -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(1f)
+                        .then(gestureModifier),
+                ) {
+                    BlurArtBackground(albumArtUri = scanner.albumArtUri(song.albumId)) {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Image(
+                                painter = rememberAsyncImagePainter(defaultArtRequest),
+                                contentDescription = song.title,
+                                modifier = Modifier
+                                    .fillMaxWidth(0.6f)
+                                    .aspectRatio(1f)
+                                    .background(Color.Black, RoundedCornerShape(16.dp)),
+                                contentScale = ContentScale.Crop,
+                            )
+                        }
+                    }
+                }
+            }
+            NowPlayingVisualMode.MINIMAL -> {
+                Box(modifier = gestureModifier) {
+                    MinimalVisualMode(albumArtUri = scanner.albumArtUri(song.albumId))
+                }
+            }
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End,
+        ) {
+            Text(
+                text = audioOutputLabel(audioOutput),
+                style = MaterialTheme.typography.labelSmall,
+                color = Color.White.copy(alpha = 0.6f),
+            )
         }
 
         Text(song.title, style = MaterialTheme.typography.headlineSmall, color = Color.White)
@@ -382,6 +501,11 @@ fun NowPlayingScreen(
         }
     }
 }
+
+/** Rough per-drag-event threshold (not total gesture distance) above which a
+ * horizontal/vertical drag on the album art is treated as a deliberate
+ * swipe (item 7). */
+private const val SWIPE_TRIGGER_PX = 150f
 
 private fun formatMs(ms: Long): String {
     val totalSeconds = ms / 1000

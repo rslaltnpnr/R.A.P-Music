@@ -10,11 +10,14 @@ import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
+import android.content.Context
 import com.ozin.music.core.data.model.Song
 import com.ozin.music.core.data.repository.PlaylistRepository
 import com.ozin.music.core.data.repository.SongRepository
+import com.ozin.music.core.domain.ArtworkResolver
 import com.ozin.music.core.domain.AutoMediaTree
 import com.ozin.music.core.domain.AutoNode
+import com.ozin.music.core.settings.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -33,8 +36,11 @@ import kotlinx.coroutines.launch
  * one active session per player), so Auto simply drives the existing queue.
  */
 class OzinLibrarySessionCallback(
+    private val context: Context,
     private val songRepository: SongRepository,
     private val playlistRepository: PlaylistRepository,
+    private val artworkResolver: ArtworkResolver,
+    private val settingsRepository: SettingsRepository,
 ) : MediaLibrarySession.Callback {
 
     private val callbackScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -147,23 +153,16 @@ class OzinLibrarySessionCallback(
             )
             .build()
 
-    private fun Song.toPlayableMediaItem(): MediaItem =
-        MediaItem.Builder()
-            .setMediaId(AutoMediaTree.songMediaId(id))
-            .setUri(
-                android.content.ContentUris.withAppendedId(
-                    android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                    id,
-                )
-            )
-            .setMediaMetadata(
-                MediaMetadata.Builder()
-                    .setTitle(title)
-                    .setArtist(artist)
-                    .setAlbumTitle(album)
-                    .setIsBrowsable(false)
-                    .setIsPlayable(true)
-                    .build()
-            )
-            .build()
+    private suspend fun Song.toPlayableMediaItem(): MediaItem {
+        val settings = settingsRepository.settings.first()
+        return MediaItemFactory.buildMediaItem(
+            context = context,
+            song = this,
+            artworkResolver = artworkResolver,
+            settings = settings,
+            mediaId = AutoMediaTree.songMediaId(id),
+            browsable = false,
+            playable = true,
+        )
+    }
 }

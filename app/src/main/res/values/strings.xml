@@ -198,4 +198,51 @@
     <string name="dj_automix_prefer_favorites">Prefer favorites</string>
     <string name="dj_automix_transition">Transition length</string>
     <string name="nav_dj_mode">DJ Mode</string>
+
+    <!-- Lock screen artwork/privacy (Phase 11) -->
+    <string name="privacy_generic_artist">Unknown Artist</string>
+    <string name="settings_lock_screen">Lock Screen</string>
+    <string name="settings_lock_screen_show_artwork">Show artwork</string>
+    <string name="settings_lock_screen_show_media_info">Show song info</string>
+    <string name="settings_artwork_quality">Artwork quality</string>
+    <string name="settings_artwork_quality_auto">Auto</string>
+    <string name="settings_artwork_quality_high">High</string>
+    <string name="settings_artwork_quality_balanced">Balanced</string>
+    <string name="settings_lock_screen_privacy">Lock screen privacy</string>
+    <string name="settings_privacy_normal">Normal</string>
+    <string name="settings_privacy_hide_artwork">Hide artwork</string>
+    <string name="settings_privacy_hide_metadata">Hide song info</string>
+    <string name="settings_privacy_private">Private</string>
+    <string name="settings_now_playing_gestures">Now Playing gestures</string>
+    <string name="settings_debug_info">Debug info</string>
+
+    <!-- Now Playing visual modes (Phase 11 additions) -->
+    <string name="player_mode_full_art">Full Art</string>
+    <string name="player_mode_blur">Blur</string>
+    <string name="player_mode_minimal">Minimal</string>
+
+    <!-- Audio output indicator -->
+    <string name="output_this_device">This device</string>
+    <string name="output_bluetooth">Bluetooth</string>
+    <string name="output_wired">Wired headphones</string>
+    <string name="output_car">Car</string>
+
+    <!-- Debug screen -->
+    <string name="debug_title">Debug Info</string>
+    <string name="debug_current_song">Current song</string>
+    <string name="debug_no_song">No song playing</string>
+    <string name="debug_playback_state">Playback state</string>
+    <string name="debug_playing">Playing</string>
+    <string name="debug_paused">Paused</string>
+    <string name="debug_artwork_source">Artwork source</string>
+    <string name="debug_artwork_source_embedded">Embedded (ID3/format tag)</string>
+    <string name="debug_artwork_source_media_store">MediaStore album art</string>
+    <string name="debug_artwork_source_default">Default artwork (none found)</string>
+    <string name="debug_artwork_source_unknown">Not resolved yet</string>
+    <string name="debug_session_connected">Media session connected</string>
+    <string name="debug_notification_active">Notification likely active</string>
+    <string name="debug_notification_note">Best-effort only: Android exposes no public API to query whether the system notification is currently showing; this reflects whether a song is loaded and playing.</string>
+    <string name="debug_audio_output">Audio output</string>
+    <string name="debug_yes">Yes</string>
+    <string name="debug_no">No</string>
 </resources>

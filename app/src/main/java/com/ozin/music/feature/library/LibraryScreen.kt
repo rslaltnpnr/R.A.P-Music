@@ -390,6 +390,9 @@ private fun SongRow(
         AsyncImage(
             model = scanner.albumArtUri(song.albumId),
             contentDescription = song.title,
+            placeholder = androidx.compose.ui.res.painterResource(R.drawable.default_artwork),
+            error = androidx.compose.ui.res.painterResource(R.drawable.default_artwork),
+            contentScale = androidx.compose.ui.layout.ContentScale.Crop,
             modifier = Modifier
                 .size(48.dp)
                 .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp)),

@@ -196,4 +196,51 @@
     <string name="dj_automix_prefer_favorites">Favorileri tercih et</string>
     <string name="dj_automix_transition">Geçiş süresi</string>
     <string name="nav_dj_mode">DJ Modu</string>
+
+    <!-- Kilit ekranı kapağı/gizlilik (Faz 11) -->
+    <string name="privacy_generic_artist">Bilinmeyen Sanatçı</string>
+    <string name="settings_lock_screen">Kilit Ekranı</string>
+    <string name="settings_lock_screen_show_artwork">Kapak resmini göster</string>
+    <string name="settings_lock_screen_show_media_info">Şarkı bilgisini göster</string>
+    <string name="settings_artwork_quality">Kapak resmi kalitesi</string>
+    <string name="settings_artwork_quality_auto">Otomatik</string>
+    <string name="settings_artwork_quality_high">Yüksek</string>
+    <string name="settings_artwork_quality_balanced">Dengeli</string>
+    <string name="settings_lock_screen_privacy">Kilit ekranı gizliliği</string>
+    <string name="settings_privacy_normal">Normal</string>
+    <string name="settings_privacy_hide_artwork">Kapak resmini gizle</string>
+    <string name="settings_privacy_hide_metadata">Şarkı bilgisini gizle</string>
+    <string name="settings_privacy_private">Gizli</string>
+    <string name="settings_now_playing_gestures">Şimdi Oynatılıyor hareketleri</string>
+    <string name="settings_debug_info">Hata ayıklama bilgisi</string>
+
+    <!-- Şimdi Oynatılıyor görsel modları (Faz 11 eklentileri) -->
+    <string name="player_mode_full_art">Tam Kapak</string>
+    <string name="player_mode_blur">Bulanık</string>
+    <string name="player_mode_minimal">Minimal</string>
+
+    <!-- Ses çıkışı göstergesi -->
+    <string name="output_this_device">Bu cihaz</string>
+    <string name="output_bluetooth">Bluetooth</string>
+    <string name="output_wired">Kablolu kulaklık</string>
+    <string name="output_car">Araç</string>
+
+    <!-- Hata ayıklama ekranı -->
+    <string name="debug_title">Hata Ayıklama Bilgisi</string>
+    <string name="debug_current_song">Geçerli şarkı</string>
+    <string name="debug_no_song">Çalan şarkı yok</string>
+    <string name="debug_playback_state">Oynatma durumu</string>
+    <string name="debug_playing">Çalıyor</string>
+    <string name="debug_paused">Duraklatıldı</string>
+    <string name="debug_artwork_source">Kapak resmi kaynağı</string>
+    <string name="debug_artwork_source_embedded">Gömülü (ID3/format etiketi)</string>
+    <string name="debug_artwork_source_media_store">MediaStore albüm kapağı</string>
+    <string name="debug_artwork_source_default">Varsayılan kapak (bulunamadı)</string>
+    <string name="debug_artwork_source_unknown">Henüz çözümlenmedi</string>
+    <string name="debug_session_connected">Medya oturumu bağlı</string>
+    <string name="debug_notification_active">Bildirim muhtemelen aktif</string>
+    <string name="debug_notification_note">Yalnızca en iyi çaba: Android, sistem bildiriminin şu anda gösterilip gösterilmediğini sorgulamak için genel bir API sunmaz; bu değer bir şarkının yüklü ve çalıyor olmasını yansıtır.</string>
+    <string name="debug_audio_output">Ses çıkışı</string>
+    <string name="debug_yes">Evet</string>
+    <string name="debug_no">Hayır</string>
 </resources>

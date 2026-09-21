@@ -9,6 +9,7 @@ import androidx.media3.session.MediaLibraryService.MediaLibrarySession
 import androidx.media3.session.MediaSession
 import com.ozin.music.core.data.repository.PlaylistRepository
 import com.ozin.music.core.data.repository.SongRepository
+import com.ozin.music.core.domain.ArtworkResolver
 import com.ozin.music.core.settings.SettingsRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -41,6 +42,7 @@ class PlaybackService : MediaLibraryService() {
     @Inject lateinit var settingsRepository: SettingsRepository
     @Inject lateinit var songRepository: SongRepository
     @Inject lateinit var playlistRepository: PlaylistRepository
+    @Inject lateinit var artworkResolver: ArtworkResolver
 
     private var mediaSession: MediaLibrarySession? = null
     private val serviceScope = CoroutineScope(Dispatchers.Main.immediate)
@@ -66,7 +68,7 @@ class PlaybackService : MediaLibraryService() {
         mediaSession = MediaLibrarySession.Builder(
             this,
             exoPlayer,
-            OzinLibrarySessionCallback(songRepository, playlistRepository),
+            OzinLibrarySessionCallback(applicationContext, songRepository, playlistRepository, artworkResolver, settingsRepository),
         ).build()
 
         if (packageManager.hasSystemFeature(PackageManager.FEATURE_AUDIO_OUTPUT).not()) {
