@@ -9,12 +9,14 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -23,8 +25,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.foundation.layout.height
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+import com.ozin.music.core.ui.theme.NeonGlowBackdrop
 import com.ozin.music.core.ui.theme.Spacing
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -51,6 +58,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.ui.res.stringResource
 import com.ozin.music.core.player.PlayerController
@@ -332,23 +340,47 @@ private fun OzinApp() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun OzinBrandBar() {
-    TopAppBar(
-        title = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Image(
-                    painter = painterResource(R.drawable.logo_mark),
-                    contentDescription = null,
-                    modifier = Modifier.size(Spacing.xl),
-                )
-                Spacer(modifier = Modifier.width(Spacing.sm))
-                Text(
-                    text = stringResource(R.string.app_name),
-                    style = MaterialTheme.typography.titleMedium,
-                )
-            }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(),
-    )
+    val accent = MaterialTheme.colorScheme.primary
+    Column {
+        TopAppBar(
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(contentAlignment = Alignment.Center) {
+                        NeonGlowBackdrop(color = accent, size = Spacing.xl + Spacing.sm)
+                        Image(
+                            painter = painterResource(R.drawable.logo_mark),
+                            contentDescription = null,
+                            modifier = Modifier.size(Spacing.xl),
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(Spacing.sm))
+                    Text(
+                        text = stringResource(R.string.app_name),
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                }
+            },
+            colors = TopAppBarDefaults.topAppBarColors(),
+        )
+        // Thin gradient underline (transparent -> accent -> transparent) for a
+        // more "branded" feel than a plain flat app bar edge.
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(2.dp)
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(
+                            accent.copy(alpha = 0f),
+                            accent.copy(alpha = 0.8f),
+                            accent.copy(alpha = 0f),
+                        ),
+                        start = Offset(0f, 0f),
+                        end = Offset(Float.POSITIVE_INFINITY, 0f),
+                    ),
+                ),
+        )
+    }
 }
 
 @Composable
@@ -373,6 +405,9 @@ private fun OzinBottomNav(navController: NavController, currentRoute: String?) {
                 },
                 icon = { Icon(icon, contentDescription = null) },
                 label = { Text(stringResource(labelRes)) },
+                colors = NavigationBarItemDefaults.colors(
+                    indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.28f),
+                ),
             )
         }
     }
