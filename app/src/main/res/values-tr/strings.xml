@@ -264,6 +264,24 @@
     <string name="settings_about_version_format">Sürüm %1$s</string>
     <string name="settings_about_developer">Resul AltınPınar (R.A.P) tarafından geliştirildi</string>
 
+    <!-- Ayarlar kategori listesi (her satır kendi sayfasını açar) -->
+    <string name="settings_section_playback">Oynatma</string>
+    <string name="settings_section_playback_subtitle">Geçiş efekti, kısma, normalizasyon, tekrar</string>
+    <string name="settings_section_library">Kitaplık</string>
+    <string name="settings_section_library_subtitle">Klasörler, yeniden tarama, kopyalar</string>
+    <string name="settings_section_personalization">Kişiselleştirme</string>
+    <string name="settings_section_personalization_subtitle">Tema, vurgu rengi, dil</string>
+    <string name="settings_section_lock_screen_subtitle">Kapak resmi, gizlilik, kalite</string>
+    <string name="settings_section_now_playing">Şimdi Oynatılıyor</string>
+    <string name="settings_section_now_playing_subtitle">Hareketler, sallayarak duraklat</string>
+    <string name="settings_section_smart_search_subtitle">Kitaplığınızda anahtar kelimeyle arayın</string>
+    <string name="settings_section_bluetooth_subtitle">Cihaz bazlı EQ, geçiş efekti, otomatik oynatma</string>
+    <string name="settings_section_dj_mode_subtitle">Çift deck miksaj ve efektler</string>
+    <string name="settings_section_network_subtitle">WebDAV sunucuları</string>
+    <string name="settings_section_backup_subtitle">Verilerinizi dışa/içe aktarın</string>
+    <string name="settings_section_about_subtitle">Sürüm, geliştirici, hata ayıklama bilgisi</string>
+    <string name="settings_back">Geri</string>
+
     <!-- Ana ekran widget'ı -->
     <string name="widget_name">R.A.P Music Çalar</string>
     <string name="widget_description">Albüm kapağı, şarkı bilgisi ve oynat/duraklat/geç kontrolleri.</string>

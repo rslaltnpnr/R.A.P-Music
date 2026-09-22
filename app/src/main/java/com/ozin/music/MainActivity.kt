@@ -91,6 +91,13 @@ import com.ozin.music.feature.problems.ProblemFilesScreen
 import com.ozin.music.feature.remote.RemoteBrowseScreen
 import com.ozin.music.feature.remote.RemoteServersScreen
 import com.ozin.music.feature.search.SmartSearchScreen
+import com.ozin.music.feature.settings.AboutSettingsScreen
+import com.ozin.music.feature.settings.BackupRestoreSettingsScreen
+import com.ozin.music.feature.settings.LibrarySettingsScreen
+import com.ozin.music.feature.settings.LockScreenSettingsScreen
+import com.ozin.music.feature.settings.NowPlayingSettingsScreen
+import com.ozin.music.feature.settings.PersonalizationSettingsScreen
+import com.ozin.music.feature.settings.PlaybackSettingsScreen
 import com.ozin.music.feature.settings.SettingsScreen
 import com.ozin.music.feature.similar.SimilarSongsScreen
 import com.ozin.music.feature.stats.StatsScreen
@@ -122,6 +129,13 @@ object Routes {
     const val SMART_SEARCH = "smart_search"
     const val SIMILAR_SONGS = "similar_songs/{songId}"
     const val DEBUG_INFO = "debug_info"
+    const val SETTINGS_PLAYBACK = "settings_playback"
+    const val SETTINGS_LIBRARY = "settings_library"
+    const val SETTINGS_PERSONALIZATION = "settings_personalization"
+    const val SETTINGS_LOCK_SCREEN = "settings_lock_screen"
+    const val SETTINGS_NOW_PLAYING = "settings_now_playing"
+    const val SETTINGS_BACKUP_RESTORE = "settings_backup_restore"
+    const val SETTINGS_ABOUT = "settings_about"
     fun playlistDetail(playlistId: Long) = "playlist/$playlistId"
     fun metadataEdit(songId: Long) = "metadata_edit/$songId"
     fun fileManagement(songId: Long) = "file_management/$songId"
@@ -240,14 +254,48 @@ private fun OzinApp() {
                 composable(Routes.EQ) { EqualizerScreen() }
                 composable(Routes.SETTINGS) {
                     SettingsScreen(
-                        onOpenFolders = { navController.navigate(Routes.FOLDERS) },
-                        onOpenProblemFiles = { navController.navigate(Routes.PROBLEM_FILES) },
-                        onOpenDuplicates = { navController.navigate(Routes.DUPLICATES) },
-                        onOpenStats = { navController.navigate(Routes.STATS) },
+                        onOpenPlayback = { navController.navigate(Routes.SETTINGS_PLAYBACK) },
+                        onOpenLibrary = { navController.navigate(Routes.SETTINGS_LIBRARY) },
+                        onOpenPersonalization = { navController.navigate(Routes.SETTINGS_PERSONALIZATION) },
+                        onOpenLockScreen = { navController.navigate(Routes.SETTINGS_LOCK_SCREEN) },
+                        onOpenNowPlaying = { navController.navigate(Routes.SETTINGS_NOW_PLAYING) },
+                        onOpenBackupRestore = { navController.navigate(Routes.SETTINGS_BACKUP_RESTORE) },
+                        onOpenAbout = { navController.navigate(Routes.SETTINGS_ABOUT) },
                         onOpenBluetoothDevices = { navController.navigate(Routes.BLUETOOTH_DEVICES) },
                         onOpenRemoteServers = { navController.navigate(Routes.REMOTE_SERVERS) },
                         onOpenSmartSearch = { navController.navigate(Routes.SMART_SEARCH) },
                         onOpenDjMode = { navController.navigate(Routes.DJ_MODE) },
+                    )
+                }
+                composable(Routes.SETTINGS_PLAYBACK) {
+                    PlaybackSettingsScreen(onBack = { navController.popBackStack() })
+                }
+                composable(Routes.SETTINGS_LIBRARY) {
+                    LibrarySettingsScreen(
+                        onBack = { navController.popBackStack() },
+                        onOpenFolders = { navController.navigate(Routes.FOLDERS) },
+                        onOpenProblemFiles = { navController.navigate(Routes.PROBLEM_FILES) },
+                        onOpenDuplicates = { navController.navigate(Routes.DUPLICATES) },
+                    )
+                }
+                composable(Routes.SETTINGS_PERSONALIZATION) {
+                    PersonalizationSettingsScreen(
+                        onBack = { navController.popBackStack() },
+                        onOpenStats = { navController.navigate(Routes.STATS) },
+                    )
+                }
+                composable(Routes.SETTINGS_LOCK_SCREEN) {
+                    LockScreenSettingsScreen(onBack = { navController.popBackStack() })
+                }
+                composable(Routes.SETTINGS_NOW_PLAYING) {
+                    NowPlayingSettingsScreen(onBack = { navController.popBackStack() })
+                }
+                composable(Routes.SETTINGS_BACKUP_RESTORE) {
+                    BackupRestoreSettingsScreen(onBack = { navController.popBackStack() })
+                }
+                composable(Routes.SETTINGS_ABOUT) {
+                    AboutSettingsScreen(
+                        onBack = { navController.popBackStack() },
                         onOpenDebugInfo = { navController.navigate(Routes.DEBUG_INFO) },
                     )
                 }
