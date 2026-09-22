@@ -3,10 +3,12 @@ package com.ozin.music.feature.home
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -20,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -29,28 +32,46 @@ import com.ozin.music.R
 import com.ozin.music.core.data.mediastore.MediaStoreScanner
 import com.ozin.music.core.data.model.Song
 import com.ozin.music.core.ui.components.SectionHeader
+import com.ozin.music.core.ui.components.WaveformMotif
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import com.ozin.music.core.ui.theme.Spacing
+import com.ozin.music.core.ui.theme.neonAmbientWash
 
 @Composable
 fun HomeScreen(onSongClick: () -> Unit, viewModel: HomeViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsState()
+    val accent = MaterialTheme.colorScheme.primary
 
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
+            .background(neonAmbientWash(accent))
             .padding(Spacing.lg),
         verticalArrangement = Arrangement.spacedBy(Spacing.xl),
     ) {
         item {
-            Text(
-                text = state.greeting,
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.onBackground,
-            )
+            Box(modifier = Modifier.fillMaxWidth()) {
+                // Subtle decorative waveform texture behind the greeting,
+                // purely ambient chrome (not tied to real audio playback).
+                WaveformMotif(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                        .align(Alignment.CenterEnd),
+                    barCount = 28,
+                    color = accent.copy(alpha = 0.18f),
+                    animated = true,
+                )
+                Text(
+                    text = state.greeting,
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.align(Alignment.CenterStart),
+                )
+            }
         }
         if (state.recentlyPlayed.isNotEmpty()) {
             item { HomeSection(title = stringResource(R.string.home_recently_played), songs = state.recentlyPlayed) { song -> viewModel.playSong(song, state.recentlyPlayed); onSongClick() } }
