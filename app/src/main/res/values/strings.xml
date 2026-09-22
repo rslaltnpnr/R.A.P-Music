@@ -292,6 +292,10 @@
     <string name="widget_pause_description">Pause</string>
     <string name="widget_next_description">Next track</string>
     <string name="widget_previous_description">Previous track</string>
+    <string name="widget_small_name">R.A.P Music (Compact)</string>
+    <string name="widget_small_description">Album art with a tap-to-play/pause overlay.</string>
+    <string name="widget_large_name">R.A.P Music (Large)</string>
+    <string name="widget_large_description">Big album art, song info and full playback controls.</string>
 
     <!-- Shake to pause -->
     <string name="settings_shake_to_pause">Shake to pause</string>

@@ -290,6 +290,10 @@
     <string name="widget_pause_description">Duraklat</string>
     <string name="widget_next_description">Sonraki parça</string>
     <string name="widget_previous_description">Önceki parça</string>
+    <string name="widget_small_name">R.A.P Music (Kompakt)</string>
+    <string name="widget_small_description">Dokunarak oynat/duraklat düğmeli albüm kapağı.</string>
+    <string name="widget_large_name">R.A.P Music (Büyük)</string>
+    <string name="widget_large_description">Büyük albüm kapağı, şarkı bilgisi ve tam oynatma kontrolleri.</string>
 
     <!-- Sallayarak duraklatma -->
     <string name="settings_shake_to_pause">Sallayarak duraklat</string>

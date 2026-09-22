@@ -39,51 +39,102 @@ class PlaybackWidgetUpdater @Inject constructor(
 
     private fun update(player: Player) {
         val manager = AppWidgetManager.getInstance(context)
-        val ids = manager.getAppWidgetIds(PlaybackWidgetProvider.widgetComponent(context))
-        if (ids.isEmpty()) return
-
         val metadata = player.mediaMetadata
         val hasItem = player.currentMediaItem != null
+        val title = if (hasItem) (metadata.title?.toString() ?: context.getString(R.string.widget_no_song))
+        else context.getString(R.string.widget_no_song)
+        val artist = if (hasItem) metadata.artist?.toString().orEmpty() else ""
+        val artworkUri = metadata.artworkUri.takeIf { hasItem }
+        val playPauseIcon = if (player.isPlaying) android.R.drawable.ic_media_pause else android.R.drawable.ic_media_play
+        val playPauseDescription =
+            context.getString(if (player.isPlaying) R.string.widget_pause_description else R.string.widget_play_description)
+
+        updateMedium(manager, title, artist, artworkUri, playPauseIcon, playPauseDescription)
+        updateLarge(manager, title, artist, artworkUri, playPauseIcon, playPauseDescription)
+        updateSmall(manager, artworkUri, playPauseIcon, playPauseDescription)
+    }
+
+    private fun updateMedium(
+        manager: AppWidgetManager,
+        title: String,
+        artist: String,
+        artworkUri: android.net.Uri?,
+        playPauseIcon: Int,
+        playPauseDescription: String,
+    ) {
+        val ids = manager.getAppWidgetIds(PlaybackWidgetProvider.widgetComponent(context))
+        if (ids.isEmpty()) return
         val views = RemoteViews(context.packageName, R.layout.widget_playback)
-
-        views.setTextViewText(
-            R.id.widget_title,
-            if (hasItem) (metadata.title?.toString() ?: context.getString(R.string.widget_no_song))
-            else context.getString(R.string.widget_no_song),
-        )
-        views.setTextViewText(R.id.widget_artist, if (hasItem) metadata.artist?.toString().orEmpty() else "")
-
-        val artworkUri = metadata.artworkUri
-        if (hasItem && artworkUri != null) {
-            views.setImageViewUri(R.id.widget_art, artworkUri)
-        } else {
-            views.setImageViewResource(R.id.widget_art, R.drawable.default_artwork)
-        }
-
-        views.setImageViewResource(
-            R.id.widget_play_pause,
-            if (player.isPlaying) android.R.drawable.ic_media_pause else android.R.drawable.ic_media_play,
-        )
-        views.setContentDescription(
-            R.id.widget_play_pause,
-            context.getString(if (player.isPlaying) R.string.widget_pause_description else R.string.widget_play_description),
-        )
-
+        views.setTextViewText(R.id.widget_title, title)
+        views.setTextViewText(R.id.widget_artist, artist)
+        if (artworkUri != null) views.setImageViewUri(R.id.widget_art, artworkUri)
+        else views.setImageViewResource(R.id.widget_art, R.drawable.default_artwork)
+        views.setImageViewResource(R.id.widget_play_pause, playPauseIcon)
+        views.setContentDescription(R.id.widget_play_pause, playPauseDescription)
         views.setOnClickPendingIntent(
             R.id.widget_play_pause,
-            PlaybackWidgetProvider.actionPendingIntent(context, PlaybackWidgetProvider.ACTION_TOGGLE),
+            PlaybackWidgetProvider.actionPendingIntent(context, WidgetCommands.ACTION_TOGGLE),
         )
         views.setOnClickPendingIntent(
             R.id.widget_next,
-            PlaybackWidgetProvider.actionPendingIntent(context, PlaybackWidgetProvider.ACTION_NEXT),
+            PlaybackWidgetProvider.actionPendingIntent(context, WidgetCommands.ACTION_NEXT),
         )
         views.setOnClickPendingIntent(
             R.id.widget_prev,
-            PlaybackWidgetProvider.actionPendingIntent(context, PlaybackWidgetProvider.ACTION_PREVIOUS),
+            PlaybackWidgetProvider.actionPendingIntent(context, WidgetCommands.ACTION_PREVIOUS),
         )
+        for (id in ids) manager.updateAppWidget(id, views)
+    }
 
-        for (id in ids) {
-            manager.updateAppWidget(id, views)
-        }
+    private fun updateLarge(
+        manager: AppWidgetManager,
+        title: String,
+        artist: String,
+        artworkUri: android.net.Uri?,
+        playPauseIcon: Int,
+        playPauseDescription: String,
+    ) {
+        val ids = manager.getAppWidgetIds(PlaybackWidgetLargeProvider.widgetComponent(context))
+        if (ids.isEmpty()) return
+        val views = RemoteViews(context.packageName, R.layout.widget_playback_large)
+        views.setTextViewText(R.id.widget_title, title)
+        views.setTextViewText(R.id.widget_artist, artist)
+        if (artworkUri != null) views.setImageViewUri(R.id.widget_art, artworkUri)
+        else views.setImageViewResource(R.id.widget_art, R.drawable.default_artwork)
+        views.setImageViewResource(R.id.widget_play_pause, playPauseIcon)
+        views.setContentDescription(R.id.widget_play_pause, playPauseDescription)
+        views.setOnClickPendingIntent(
+            R.id.widget_play_pause,
+            WidgetCommands.actionPendingIntent(context, PlaybackWidgetLargeProvider::class.java, WidgetCommands.ACTION_TOGGLE),
+        )
+        views.setOnClickPendingIntent(
+            R.id.widget_next,
+            WidgetCommands.actionPendingIntent(context, PlaybackWidgetLargeProvider::class.java, WidgetCommands.ACTION_NEXT),
+        )
+        views.setOnClickPendingIntent(
+            R.id.widget_prev,
+            WidgetCommands.actionPendingIntent(context, PlaybackWidgetLargeProvider::class.java, WidgetCommands.ACTION_PREVIOUS),
+        )
+        for (id in ids) manager.updateAppWidget(id, views)
+    }
+
+    private fun updateSmall(
+        manager: AppWidgetManager,
+        artworkUri: android.net.Uri?,
+        playPauseIcon: Int,
+        playPauseDescription: String,
+    ) {
+        val ids = manager.getAppWidgetIds(PlaybackWidgetSmallProvider.widgetComponent(context))
+        if (ids.isEmpty()) return
+        val views = RemoteViews(context.packageName, R.layout.widget_playback_small)
+        if (artworkUri != null) views.setImageViewUri(R.id.widget_art, artworkUri)
+        else views.setImageViewResource(R.id.widget_art, R.drawable.default_artwork)
+        views.setImageViewResource(R.id.widget_play_pause, playPauseIcon)
+        views.setContentDescription(R.id.widget_play_pause, playPauseDescription)
+        views.setOnClickPendingIntent(
+            R.id.widget_play_pause,
+            WidgetCommands.actionPendingIntent(context, PlaybackWidgetSmallProvider::class.java, WidgetCommands.ACTION_TOGGLE),
+        )
+        for (id in ids) manager.updateAppWidget(id, views)
     }
 }
