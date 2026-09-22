@@ -309,6 +309,8 @@
 
     <!-- Sallayarak duraklatma -->
     <string name="settings_shake_to_pause">Sallayarak duraklat</string>
+    <string name="settings_auto_download_lyrics">İnternetten otomatik şarkı sözü indir</string>
+    <string name="settings_auto_download_lyrics_description">Bir şarkının yanında söz dosyası bulunamazsa, başlık, sanatçı, albüm ve süre bilgisiyle LRCLIB (lrclib.net) üzerinden aranır ve bulunursa şarkının yanına kaydedilerek bir daha internete gerek kalmaz. Bu bilgiler üçüncü taraf bir servise gönderildiğinden, varsayılan olarak kapalıdır.</string>
     <string name="settings_shake_to_pause_summary">Şarkı çalarken telefonu sallayarak oynatmayı duraklatın.</string>
 
     <!-- Yedekleme / geri yükleme -->

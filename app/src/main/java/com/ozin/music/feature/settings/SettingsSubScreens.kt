@@ -315,6 +315,16 @@ fun NowPlayingSettingsScreen(onBack: () -> Unit, viewModel: SettingsViewModel = 
                 settings.shakeToPauseEnabled,
                 viewModel::toggleShakeToPause,
             )
+            SettingRow(
+                stringResource(R.string.settings_auto_download_lyrics),
+                settings.autoDownloadLyricsEnabled,
+                viewModel::toggleAutoDownloadLyrics,
+            )
+            Text(
+                stringResource(R.string.settings_auto_download_lyrics_description),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }

@@ -2,6 +2,7 @@ package com.ozin.music.feature.lyrics
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ozin.music.core.data.network.LrcLibClient
 import com.ozin.music.core.domain.LrcParser
 import com.ozin.music.core.domain.LyricLine
 import com.ozin.music.core.player.PlayerController
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -36,6 +38,7 @@ data class LyricsUiState(
 class LyricsViewModel @Inject constructor(
     private val playerController: PlayerController,
     private val settingsRepository: SettingsRepository,
+    private val lrcLibClient: LrcLibClient,
 ) : ViewModel() {
 
     private val rawLyricsText = MutableStateFlow<String?>(null)
@@ -43,6 +46,13 @@ class LyricsViewModel @Inject constructor(
     private val editText = MutableStateFlow("")
     private val saveError = MutableStateFlow<String?>(null)
     private val saveSuccess = MutableStateFlow(false)
+
+    /** Song paths already tried (success or failure) via the LRCLIB
+     * auto-download this ViewModel's lifetime, so revisiting the same song
+     * in one session never re-hits the network once we already know the
+     * answer (a success is also cached to disk, see [maybeAutoDownloadLyrics];
+     * a failure is only remembered in-memory, and is retried next app run). */
+    private val autoDownloadAttempted = mutableSetOf<String>()
 
     val uiState: StateFlow<LyricsUiState> = combine(
         playerController.state,
@@ -79,6 +89,60 @@ class LyricsViewModel @Inject constructor(
                 delay(300)
                 playerController.tickPosition()
             }
+        }
+
+        // Auto-download fallback: whenever the current song changes (or the
+        // setting is turned on) and there is no local .lrc file for it, try
+        // LRCLIB once. This only reacts to the song identity, not every
+        // playback tick, so it never re-fires 3x/second.
+        viewModelScope.launch {
+            combine(
+                playerController.state,
+                settingsRepository.settings,
+            ) { playback, settings -> Triple(playback.currentSong?.path, playback.currentSong, settings.autoDownloadLyricsEnabled) }
+                .distinctUntilChanged()
+                .collect { (path, song, enabled) ->
+                    if (path == null || song == null || !enabled) return@collect
+                    maybeAutoDownloadLyrics(path, song.title, song.artist, song.album, song.durationMs)
+                }
+        }
+    }
+
+    /** If [audioPath] has no local .lrc file already, looks it up on LRCLIB
+     * off the main thread and, on a match, writes it to a real local .lrc
+     * file next to the song (same base-filename convention the local lookup
+     * above already uses) so it is picked up on the next state recompute
+     * (driven by the 300ms position tick above) and never re-downloaded.
+     * Fails completely silently - no error is surfaced to the UI - since
+     * this is a best-effort background fallback, not a user-initiated action. */
+    private fun maybeAutoDownloadLyrics(
+        audioPath: String,
+        title: String,
+        artist: String,
+        album: String,
+        durationMs: Long,
+    ) {
+        if (audioPath in autoDownloadAttempted) return
+        if (LrcParser.findAndParseFor(audioPath) != null) return
+        val audioFile = File(audioPath)
+        val lrcFile = File(audioFile.parentFile, audioFile.nameWithoutExtension + ".lrc")
+        if (lrcFile.exists()) return // has an unsynced/local file already - don't overwrite it
+        autoDownloadAttempted += audioPath
+        viewModelScope.launch {
+            val lyrics = runCatching {
+                lrcLibClient.fetchSyncedLyrics(
+                    trackName = title,
+                    artistName = artist,
+                    albumName = album,
+                    durationMs = durationMs,
+                )
+            }.getOrNull() ?: return@launch
+            // Written straight to disk (not through `rawLyricsText`, which
+            // is scoped to the manual editor and not per-song): the next
+            // state recompute - driven by the 300ms position tick already
+            // running above - re-reads the file via LrcParser.findAndParseFor
+            // and picks it up automatically.
+            runCatching { lrcFile.writeText(lyrics) }
         }
     }
 
