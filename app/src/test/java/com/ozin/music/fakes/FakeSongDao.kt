@@ -70,6 +70,14 @@ class FakeSongDao : SongDao {
         emit()
     }
 
+    override suspend fun setLoudnessLufs(id: Long, loudnessLufs: Float) {
+        songs[id]?.let { songs[id] = it.copy(loudnessLufs = loudnessLufs) }
+        emit()
+    }
+
+    override suspend fun getUnanalyzedForLoudness(): List<Song> =
+        songs.values.filter { it.loudnessLufs == null }.sortedBy { it.dateAdded }
+
     override suspend fun delete(song: Song) {
         songs.remove(song.id)
         emit()
