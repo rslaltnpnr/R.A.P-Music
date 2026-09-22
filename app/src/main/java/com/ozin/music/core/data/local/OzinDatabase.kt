@@ -18,7 +18,7 @@ import com.ozin.music.core.data.model.Song
         ListeningEvent::class, SmartPlaylist::class, BluetoothDeviceProfile::class,
         RemoteServer::class, CustomEqPreset::class,
     ],
-    version = 7,
+    version = 8,
     exportSchema = false,
 )
 abstract class OzinDatabase : RoomDatabase() {

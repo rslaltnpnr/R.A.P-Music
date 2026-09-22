@@ -87,6 +87,12 @@ data class AppSettings(
     val lockScreenPrivacy: LockScreenPrivacy = LockScreenPrivacy.NORMAL,
     val nowPlayingGesturesEnabled: Boolean = true,
     val shakeToPauseEnabled: Boolean = false,
+    /** The last of the 5 main bottom-nav routes the user viewed (Home/
+     * Library/Lists/EQ/Settings route constants from [com.ozin.music.Routes]),
+     * used as the NavHost start destination on next launch so the app resumes
+     * where the user left off. Empty means "no preference yet" (fresh
+     * install), in which case the caller falls back to Home. */
+    val lastViewedRoute: String = "",
 )
 
 @Singleton
@@ -122,6 +128,7 @@ class SettingsRepository @Inject constructor(
         val LOCK_SCREEN_PRIVACY = stringPreferencesKey("lock_screen_privacy")
         val NOW_PLAYING_GESTURES_ENABLED = booleanPreferencesKey("now_playing_gestures_enabled")
         val SHAKE_TO_PAUSE_ENABLED = booleanPreferencesKey("shake_to_pause_enabled")
+        val LAST_VIEWED_ROUTE = stringPreferencesKey("last_viewed_route")
     }
 
     val settings: Flow<AppSettings> = context.dataStore.data.map { prefs ->
@@ -175,7 +182,12 @@ class SettingsRepository @Inject constructor(
             }.getOrDefault(LockScreenPrivacy.NORMAL),
             nowPlayingGesturesEnabled = prefs[Keys.NOW_PLAYING_GESTURES_ENABLED] ?: true,
             shakeToPauseEnabled = prefs[Keys.SHAKE_TO_PAUSE_ENABLED] ?: false,
+            lastViewedRoute = prefs[Keys.LAST_VIEWED_ROUTE] ?: "",
         )
+    }
+
+    suspend fun setLastViewedRoute(route: String) {
+        context.dataStore.edit { it[Keys.LAST_VIEWED_ROUTE] = route }
     }
 
     suspend fun setShakeToPauseEnabled(enabled: Boolean) {

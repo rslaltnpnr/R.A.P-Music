@@ -102,6 +102,12 @@
     <string name="settings_shuffle_default">Shuffle by default</string>
     <string name="settings_compact_mini_player">Compact mini player</string>
     <string name="settings_default_repeat_mode">Default repeat mode</string>
+    <string name="settings_analyze_loudness">Analyze library loudness</string>
+    <string name="settings_analyze_loudness_description">Measures a real per-track loudness estimate for songs that have never been analyzed (a simplified RMS-based estimate, not full EBU R128), a few at a time. Runs in the background and can be stopped at any point.</string>
+    <string name="settings_analyze_loudness_start">Start analysis</string>
+    <string name="settings_analyze_loudness_stop">Stop</string>
+    <string name="settings_analyze_loudness_progress">Analyzed %1$d of %2$d songs</string>
+    <string name="stats_mood_distribution">Mood distribution</string>
     <string name="settings_repeat_mode_selected_format">%1$s ✓</string>
     <string name="settings_repeat_off">Off</string>
     <string name="settings_repeat_all">Repeat all</string>

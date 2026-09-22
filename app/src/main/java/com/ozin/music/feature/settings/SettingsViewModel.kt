@@ -17,6 +17,7 @@ import com.ozin.music.core.ui.theme.AccentColorOption
 import com.ozin.music.core.ui.theme.ThemeMode
 import com.ozin.music.core.ui.theme.ThemePreset
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -173,4 +174,38 @@ class SettingsViewModel @Inject constructor(
     fun toggleShakeToPause(enabled: Boolean) {
         viewModelScope.launch { settingsRepository.setShakeToPauseEnabled(enabled) }
     }
+
+    private val _loudnessAnalysisProgress = MutableStateFlow<LoudnessAnalysisProgress?>(null)
+    val loudnessAnalysisProgress: StateFlow<LoudnessAnalysisProgress?> = _loudnessAnalysisProgress.asStateFlow()
+
+    private var loudnessAnalysisJob: Job? = null
+
+    /** Runs the real per-track loudness analyzer over every song that has
+     * never been analyzed, a few at a time. Real, working cancellation: the
+     * loop lives inside [loudnessAnalysisJob], which [stopLoudnessAnalysis]
+     * cancels outright (called from the screen's onDispose), following the
+     * same cancellable-background-Job pattern as this app's other
+     * long-running one-shot passes. */
+    fun startLoudnessAnalysis() {
+        if (loudnessAnalysisJob?.isActive == true) return
+        _loudnessAnalysisProgress.value = LoudnessAnalysisProgress(0, 0, running = true)
+        loudnessAnalysisJob = viewModelScope.launch {
+            songRepository.analyzeLibraryLoudness { processed, total ->
+                _loudnessAnalysisProgress.value = LoudnessAnalysisProgress(processed, total, running = true)
+            }
+            _loudnessAnalysisProgress.value = _loudnessAnalysisProgress.value?.copy(running = false)
+        }
+    }
+
+    fun stopLoudnessAnalysis() {
+        loudnessAnalysisJob?.cancel()
+        loudnessAnalysisJob = null
+        _loudnessAnalysisProgress.value = _loudnessAnalysisProgress.value?.copy(running = false)
+    }
+
 }
+
+/** [processed]/[total] songs analyzed so far in the current manual "analyze
+ * library loudness" run; [running] is false once it finishes or is
+ * cancelled. */
+data class LoudnessAnalysisProgress(val processed: Int, val total: Int, val running: Boolean)

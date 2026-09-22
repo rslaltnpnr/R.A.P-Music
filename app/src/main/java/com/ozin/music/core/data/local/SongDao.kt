@@ -65,6 +65,14 @@ interface SongDao {
     @Query("UPDATE songs SET moodTags = :moodTags WHERE id = :id")
     suspend fun setMoodTags(id: Long, moodTags: String)
 
+    @Query("UPDATE songs SET loudnessLufs = :loudnessLufs WHERE id = :id")
+    suspend fun setLoudnessLufs(id: Long, loudnessLufs: Float)
+
+    /** Songs never analyzed for loudness yet, oldest-added first so a manual
+     * "analyze library" pass makes steady forward progress across runs. */
+    @Query("SELECT * FROM songs WHERE loudnessLufs IS NULL ORDER BY dateAdded ASC")
+    suspend fun getUnanalyzedForLoudness(): List<Song>
+
     @Delete
     suspend fun delete(song: Song)
 }

@@ -120,6 +120,14 @@ class PlayerController @Inject constructor(
             ctrl.setMediaItems(fastItems, safeIndex, 0L)
             ctrl.prepare()
             ctrl.play()
+            // Lazily analyze this track's loudness if it has never been
+            // measured, fully off the hot playback-start path: launched as
+            // its own fire-and-forget coroutine on Dispatchers.IO so it never
+            // delays or blocks playback, and any decode failure is already
+            // swallowed inside LoudnessAnalyzer/analyzeLoudnessIfNeeded.
+            CoroutineScope(Dispatchers.IO).launch {
+                runCatching { songRepository.analyzeLoudnessIfNeeded(songs[safeIndex]) }
+            }
             // Then resolve full artwork (embedded ID3 art, quality tiers,
             // privacy enforcement) per song and patch each MediaItem in
             // place, starting with the one actually playing.

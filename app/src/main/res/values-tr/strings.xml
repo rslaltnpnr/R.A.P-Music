@@ -100,6 +100,12 @@
     <string name="settings_shuffle_default">Varsayılan olarak karıştır</string>
     <string name="settings_compact_mini_player">Kompakt mini oynatıcı</string>
     <string name="settings_default_repeat_mode">Varsayılan tekrar modu</string>
+    <string name="settings_analyze_loudness">Kitaplık ses düzeyini analiz et</string>
+    <string name="settings_analyze_loudness_description">Hiç analiz edilmemiş şarkılar için gerçek, parça başına ses düzeyi tahmini hesaplar (basitleştirilmiş RMS tabanlı bir tahmin, tam EBU R128 değil), bir seferde birkaç şarkı. Arka planda çalışır ve istediğiniz an durdurulabilir.</string>
+    <string name="settings_analyze_loudness_start">Analizi başlat</string>
+    <string name="settings_analyze_loudness_stop">Durdur</string>
+    <string name="settings_analyze_loudness_progress">%2$d şarkıdan %1$d tanesi analiz edildi</string>
+    <string name="stats_mood_distribution">Ruh hali dağılımı</string>
     <string name="settings_repeat_mode_selected_format">%1$s ✓</string>
     <string name="settings_repeat_off">Kapalı</string>
     <string name="settings_repeat_all">Tümünü tekrarla</string>

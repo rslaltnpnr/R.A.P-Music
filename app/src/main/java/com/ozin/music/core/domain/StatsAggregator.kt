@@ -17,6 +17,11 @@ data class StatsSummary(
     val topGenres: List<NamedTotal>,
     /** 24 buckets, index = hour-of-day (0-23) in the local time zone, value = total ms listened in that hour. */
     val hourlyHistogramMs: List<Long>,
+    /** Real distribution over [com.ozin.music.core.domain.Mood] names, built
+     * from each played song's [Song.moodTags] (only populated once the user
+     * has run "Compute mood tags"; songs without tags simply don't
+     * contribute, so this is empty rather than misleading until then). */
+    val moodDistribution: List<NamedTotal> = emptyList(),
 )
 
 /** Pure aggregation over the real listening-event log + song library. Kept
@@ -53,6 +58,17 @@ object StatsAggregator {
             histogram[hour] += event.durationMs
         }
 
+        val moodDistribution = inRange
+            .mapNotNull { event -> songMap[event.songId]?.let { it to event.durationMs } }
+            .flatMap { (song, durationMs) ->
+                MoodTagCodec.decode(song.moodTags).map { mood -> mood.name to durationMs }
+            }
+            .groupBy({ it.first }, { it.second })
+            .mapValues { it.value.sum() }
+            .entries
+            .sortedByDescending { it.value }
+            .map { NamedTotal(it.key, it.value) }
+
         return StatsSummary(
             range = range,
             totalListenedMs = totalMs,
@@ -61,6 +77,7 @@ object StatsAggregator {
             topAlbums = topAlbums,
             topGenres = topGenres,
             hourlyHistogramMs = histogram.toList(),
+            moodDistribution = moodDistribution,
         )
     }
 

@@ -32,4 +32,10 @@ data class Song(
      * "Compute mood tags" in Settings, or after a rescan if this field is
      * populated by that pass; simple heuristic labels, not machine learning. */
     val moodTags: String = "",
+    /** Real per-track loudness estimate in dB (relative, not absolute LUFS
+     * despite the field name kept for API continuity), computed by
+     * [com.ozin.music.core.domain.LoudnessAnalyzer]. Null until analyzed -
+     * see that analyzer's kdoc for exactly what algorithm this value comes
+     * from (a simplified RMS-based estimate, not full EBU R128). */
+    val loudnessLufs: Float? = null,
 )
