@@ -115,6 +115,10 @@ class PlaybackWidgetUpdater @Inject constructor(
             R.id.widget_prev,
             WidgetCommands.actionPendingIntent(context, PlaybackWidgetLargeProvider::class.java, WidgetCommands.ACTION_PREVIOUS),
         )
+        views.setOnClickPendingIntent(
+            R.id.widget_recent,
+            WidgetCommands.actionPendingIntent(context, PlaybackWidgetLargeProvider::class.java, WidgetCommands.ACTION_CYCLE_RECENT),
+        )
         for (id in ids) manager.updateAppWidget(id, views)
     }
 

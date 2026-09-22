@@ -74,6 +74,12 @@ data class AppSettings(
     val virtualizerStrength: Int = 0,
     val loudnessGainMb: Int = 0,
     val lyricsOffsetMs: Int = 0,
+    /** Whether Now Playing shows the one-time, dismissible "try this EQ
+     * preset?" banner (item 2) when a newly-played song's mood tags map to a
+     * preset different from the currently-active one. Defaults to ON since
+     * it is non-blocking, never auto-applies, and can be turned off here at
+     * any time from Settings > Playback. */
+    val eqSuggestionEnabled: Boolean = true,
     // Personalization (Phase 9)
     val themePreset: ThemePreset = ThemePreset.DEFAULT_DARK,
     val themeMode: ThemeMode = ThemeMode.DARK,
@@ -117,6 +123,7 @@ class SettingsRepository @Inject constructor(
         val VIRTUALIZER_STRENGTH = intPreferencesKey("virtualizer_strength")
         val LOUDNESS_GAIN_MB = intPreferencesKey("loudness_gain_mb")
         val LYRICS_OFFSET_MS = intPreferencesKey("lyrics_offset_ms")
+        val EQ_SUGGESTION_ENABLED = booleanPreferencesKey("eq_suggestion_enabled")
         val THEME_PRESET = stringPreferencesKey("theme_preset")
         val THEME_MODE = stringPreferencesKey("theme_mode")
         val ACCENT_COLOR = stringPreferencesKey("accent_color")
@@ -155,6 +162,7 @@ class SettingsRepository @Inject constructor(
             virtualizerStrength = prefs[Keys.VIRTUALIZER_STRENGTH] ?: 0,
             loudnessGainMb = prefs[Keys.LOUDNESS_GAIN_MB] ?: 0,
             lyricsOffsetMs = prefs[Keys.LYRICS_OFFSET_MS] ?: 0,
+            eqSuggestionEnabled = prefs[Keys.EQ_SUGGESTION_ENABLED] ?: true,
             themePreset = runCatching {
                 ThemePreset.valueOf(prefs[Keys.THEME_PRESET] ?: ThemePreset.DEFAULT_DARK.name)
             }.getOrDefault(ThemePreset.DEFAULT_DARK),
@@ -321,5 +329,9 @@ class SettingsRepository @Inject constructor(
 
     suspend fun setNowPlayingGesturesEnabled(enabled: Boolean) {
         context.dataStore.edit { it[Keys.NOW_PLAYING_GESTURES_ENABLED] = enabled }
+    }
+
+    suspend fun setEqSuggestionEnabled(enabled: Boolean) {
+        context.dataStore.edit { it[Keys.EQ_SUGGESTION_ENABLED] = enabled }
     }
 }

@@ -99,6 +99,7 @@
     <string name="settings_audio_normalization">Ses normalizasyonu</string>
     <string name="settings_shuffle_default">Varsayılan olarak karıştır</string>
     <string name="settings_compact_mini_player">Kompakt mini oynatıcı</string>
+    <string name="settings_eq_suggestion">Ruh haline göre ekolayzer öner</string>
     <string name="settings_default_repeat_mode">Varsayılan tekrar modu</string>
     <string name="settings_analyze_loudness">Kitaplık ses düzeyini analiz et</string>
     <string name="settings_analyze_loudness_description">Hiç analiz edilmemiş şarkılar için gerçek, parça başına ses düzeyi tahmini hesaplar (basitleştirilmiş RMS tabanlı bir tahmin, tam EBU R128 değil), bir seferde birkaç şarkı. Arka planda çalışır ve istediğiniz an durdurulabilir.</string>
@@ -168,6 +169,9 @@
     <string name="eq_cancel">İptal</string>
     <string name="eq_delete_preset">Ön ayarı sil</string>
     <string name="eq_no_custom_presets">Henüz kaydedilmiş özel ön ayar yok.</string>
+    <string name="eq_suggestion_message_format">Bu şarkı %1$s hissi veriyor — %2$s ekolayzer ön ayarını denemek ister misiniz?</string>
+    <string name="eq_suggestion_apply">Uygula</string>
+    <string name="eq_suggestion_dismiss">Kapat</string>
     <string name="library_select">Seç</string>
     <string name="library_selected_count_format">%1$d seçildi</string>
     <string name="library_add_selected_to_playlist">Çalma listesine ekle</string>
@@ -300,6 +304,7 @@
     <string name="widget_small_description">Dokunarak oynat/duraklat düğmeli albüm kapağı.</string>
     <string name="widget_large_name">R.A.P Music (Büyük)</string>
     <string name="widget_large_description">Büyük albüm kapağı, şarkı bilgisi ve tam oynatma kontrolleri.</string>
+    <string name="widget_recent_description">Son çalınan sonraki şarkıyı oynat</string>
 
     <!-- Sallayarak duraklatma -->
     <string name="settings_shake_to_pause">Sallayarak duraklat</string>

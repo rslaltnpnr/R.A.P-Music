@@ -106,6 +106,10 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch { settingsRepository.setFadeInOutEnabled(enabled) }
     }
 
+    fun toggleEqSuggestion(enabled: Boolean) {
+        viewModelScope.launch { settingsRepository.setEqSuggestionEnabled(enabled) }
+    }
+
     fun addExcludedFolder(path: String) {
         if (path.isBlank()) return
         viewModelScope.launch {

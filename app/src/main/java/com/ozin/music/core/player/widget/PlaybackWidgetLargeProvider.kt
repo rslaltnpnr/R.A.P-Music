@@ -30,6 +30,10 @@ class PlaybackWidgetLargeProvider : AppWidgetProvider() {
                 val pending = goAsync()
                 WidgetCommands.sendCommand(context, intent.action!!) { pending.finish() }
             }
+            WidgetCommands.ACTION_CYCLE_RECENT -> {
+                val pending = goAsync()
+                WidgetCommands.cycleRecentAndPlay(context) { pending.finish() }
+            }
         }
     }
 
@@ -55,6 +59,10 @@ class PlaybackWidgetLargeProvider : AppWidgetProvider() {
         views.setOnClickPendingIntent(
             R.id.widget_prev,
             WidgetCommands.actionPendingIntent(context, PlaybackWidgetLargeProvider::class.java, WidgetCommands.ACTION_PREVIOUS),
+        )
+        views.setOnClickPendingIntent(
+            R.id.widget_recent,
+            WidgetCommands.actionPendingIntent(context, PlaybackWidgetLargeProvider::class.java, WidgetCommands.ACTION_CYCLE_RECENT),
         )
     }
 

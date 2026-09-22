@@ -9,6 +9,7 @@ import coil.ImageLoaderFactory
 import coil.disk.DiskCache
 import coil.memory.MemoryCache
 import com.ozin.music.core.data.mediastore.MediaStoreChangeWatcher
+import com.ozin.music.core.data.repository.SongRepository
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
@@ -19,6 +20,11 @@ import dagger.hilt.components.SingletonComponent
 @InstallIn(SingletonComponent::class)
 interface OzinMusicAppEntryPoint {
     fun mediaStoreChangeWatcher(): MediaStoreChangeWatcher
+
+    /** Used by [com.ozin.music.core.player.widget.WidgetCommands] (a plain
+     * object, not itself Hilt-injected) to read the real recently-played
+     * list for the large widget's "cycle recent" button (item 3). */
+    fun songRepository(): SongRepository
 }
 
 @HiltAndroidApp

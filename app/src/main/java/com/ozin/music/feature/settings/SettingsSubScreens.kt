@@ -83,6 +83,7 @@ fun PlaybackSettingsScreen(onBack: () -> Unit, viewModel: SettingsViewModel = hi
             SettingRow(stringResource(R.string.settings_audio_normalization), settings.normalizationEnabled, viewModel::toggleNormalization)
             SettingRow(stringResource(R.string.settings_shuffle_default), settings.shuffleDefault, viewModel::toggleShuffleDefault)
             SettingRow(stringResource(R.string.settings_compact_mini_player), settings.miniPlayerCompact, viewModel::toggleMiniPlayerCompact)
+            SettingRow(stringResource(R.string.settings_eq_suggestion), settings.eqSuggestionEnabled, viewModel::toggleEqSuggestion)
 
             Text(stringResource(R.string.settings_default_repeat_mode), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
