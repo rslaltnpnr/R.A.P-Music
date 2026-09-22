@@ -20,6 +20,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -49,6 +50,15 @@ import com.ozin.music.core.ui.theme.ThemePreset
 @Composable
 fun PlaybackSettingsScreen(onBack: () -> Unit, viewModel: SettingsViewModel = hiltViewModel()) {
     val settings by viewModel.settings.collectAsState()
+    val loudnessProgress by viewModel.loudnessAnalysisProgress.collectAsState()
+
+    // Real, working cancellation: if the user navigates away from this
+    // screen mid-analysis, the background Job driving it is cancelled here
+    // rather than left running unattended.
+    DisposableEffect(Unit) {
+        onDispose { viewModel.stopLoudnessAnalysis() }
+    }
+
     SettingsSubScreen(
         title = stringResource(R.string.settings_section_playback),
         onBack = onBack,
@@ -82,6 +92,34 @@ fun PlaybackSettingsScreen(onBack: () -> Unit, viewModel: SettingsViewModel = hi
                         selected = settings.repeatDefault == mode,
                         onClick = { viewModel.setRepeatDefault(mode) },
                     )
+                }
+            }
+        }
+
+        SettingsCard {
+            Text(
+                stringResource(R.string.settings_analyze_loudness),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+            )
+            Text(
+                stringResource(R.string.settings_analyze_loudness_description),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            val progress = loudnessProgress
+            if (progress != null && progress.running) {
+                Text(
+                    stringResource(R.string.settings_analyze_loudness_progress, progress.processed, progress.total),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Button(onClick = { viewModel.stopLoudnessAnalysis() }) {
+                    Text(stringResource(R.string.settings_analyze_loudness_stop))
+                }
+            } else {
+                Button(onClick = { viewModel.startLoudnessAnalysis() }) {
+                    Text(stringResource(R.string.settings_analyze_loudness_start))
                 }
             }
         }

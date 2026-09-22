@@ -30,12 +30,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.ozin.music.R
 import com.ozin.music.core.domain.NamedTotal
 import com.ozin.music.core.domain.SongTotal
 import com.ozin.music.core.domain.StatsRange
+import com.ozin.music.core.ui.components.GlassCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -94,6 +97,14 @@ fun StatsScreen(onBack: () -> Unit, viewModel: StatsViewModel = hiltViewModel())
             items(summary.topAlbums, key = { "album_${it.name}" }) { NamedTotalRow(it) }
             item { SectionHeader("En çok dinlenen türler") }
             items(summary.topGenres, key = { "genre_${it.name}" }) { NamedTotalRow(it) }
+            if (summary.moodDistribution.isNotEmpty()) {
+                item { SectionHeader(stringResource(R.string.stats_mood_distribution)) }
+                item {
+                    GlassCard {
+                        summary.moodDistribution.forEach { entry -> NamedTotalRow(entry) }
+                    }
+                }
+            }
         }
     }
 }

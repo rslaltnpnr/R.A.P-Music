@@ -1,13 +1,16 @@
 package com.ozin.music.core.data.repository
 
+import android.content.Context
 import com.ozin.music.core.data.local.SongDao
 import com.ozin.music.core.data.mediastore.MediaStoreScanner
 import com.ozin.music.core.data.model.ListeningEvent
 import com.ozin.music.core.data.model.Song
+import com.ozin.music.core.domain.LoudnessAnalyzer
 import com.ozin.music.core.domain.MoodClassifier
 import com.ozin.music.core.domain.MoodTagCodec
 import com.ozin.music.core.domain.RatingValidator
 import com.ozin.music.core.settings.SettingsRepository
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
@@ -15,6 +18,7 @@ import javax.inject.Singleton
 
 @Singleton
 class SongRepository @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val songDao: SongDao,
     private val scanner: MediaStoreScanner,
     private val settingsRepository: SettingsRepository,
@@ -95,6 +99,38 @@ class SongRepository @Inject constructor(
         allSongs.forEach { song ->
             val moods = MoodClassifier.classify(song, eventsBySong[song.id].orEmpty())
             songDao.setMoodTags(song.id, MoodTagCodec.encode(moods))
+        }
+    }
+
+    /**
+     * Fire-and-forget lazy analysis: if [song] has never been analyzed for
+     * loudness, decodes and stores a real value in the background. Never
+     * throws and never blocks the caller - the analyzer itself already
+     * catches decode failures and returns null, in which case nothing is
+     * written and the song simply stays unanalyzed for next time.
+     */
+    suspend fun analyzeLoudnessIfNeeded(song: Song) {
+        if (song.loudnessLufs != null) return
+        val value = LoudnessAnalyzer.analyze(context, song.id) ?: return
+        songDao.setLoudnessLufs(song.id, value)
+    }
+
+    /**
+     * Processes unanalyzed songs a few at a time (real, cooperative
+     * cancellation: this loop is plain suspend code inside the caller's
+     * coroutine, so cancelling that coroutine - e.g. a ViewModel Job the
+     * screen cancels on navigating away - stops it between songs). Reports
+     * progress via [onProgress] as (processed, total).
+     */
+    suspend fun analyzeLibraryLoudness(batchSize: Int = 5, onProgress: (Int, Int) -> Unit = { _, _ -> }) {
+        val pending = songDao.getUnanalyzedForLoudness()
+        val total = pending.size
+        pending.forEachIndexed { index, song ->
+            val value = LoudnessAnalyzer.analyze(context, song.id)
+            if (value != null) {
+                songDao.setLoudnessLufs(song.id, value)
+            }
+            onProgress(index + 1, total)
         }
     }
 }

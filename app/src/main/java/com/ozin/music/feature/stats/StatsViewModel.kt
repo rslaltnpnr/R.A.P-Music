@@ -7,11 +7,13 @@ import com.ozin.music.core.data.repository.SongRepository
 import com.ozin.music.core.domain.StatsAggregator
 import com.ozin.music.core.domain.StatsRange
 import com.ozin.music.core.domain.StatsSummary
+import com.ozin.music.core.domain.StatsTimeRange
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
@@ -24,9 +26,20 @@ class StatsViewModel @Inject constructor(
     private val selectedRange = MutableStateFlow(StatsRange.TODAY)
     val range: StateFlow<StatsRange> = selectedRange
 
+    // Real DB-level date-range filtering: re-queries listening_events with a
+    // WHERE timestampMs BETWEEN clause every time the selected range changes,
+    // instead of pulling the entire event log into memory once and filtering
+    // it client-side (which would not scale for a long-lived library).
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    private val eventsForSelectedRange = selectedRange.flatMapLatest { range ->
+        val now = System.currentTimeMillis()
+        val start = StatsTimeRange.startOfRangeMs(range, now)
+        listeningStatsRepository.eventsInRange(start, now)
+    }
+
     val summary: StateFlow<StatsSummary> = combine(
         songRepository.songs,
-        listeningStatsRepository.events,
+        eventsForSelectedRange,
         selectedRange,
     ) { songs, events, range ->
         StatsAggregator.summarize(songs, events, range)

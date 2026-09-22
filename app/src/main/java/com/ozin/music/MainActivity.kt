@@ -182,7 +182,7 @@ class MainActivity : ComponentActivity() {
                     )
                 }
                 if (hasPermission) {
-                    OzinApp()
+                    OzinApp(settingsRepository)
                 } else {
                     PermissionScreen(onGranted = { hasPermission = true })
                 }
@@ -196,12 +196,44 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+/** The 5 main bottom-nav destinations eligible for "resume where I left off"
+ * persistence - anything else (Now Playing, a detail screen, etc.) is never
+ * saved as a start destination. */
+private val mainNavRoutes = setOf(Routes.HOME, Routes.LIBRARY, Routes.LISTS, Routes.EQ, Routes.SETTINGS)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun OzinApp() {
+private fun OzinApp(settingsRepository: SettingsRepository) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
+
+    // Resolved once at cold start from the persisted last-viewed main tab
+    // (falls back to Home when there is none yet, e.g. a fresh install).
+    // Resolving this asynchronously (rather than a blocking DataStore read)
+    // keeps the composition off the main-thread I/O path; the app simply
+    // shows a brief blank background frame while it resolves, same as the
+    // permission-gate above.
+    var startDestination by remember { mutableStateOf<String?>(null) }
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        val saved = settingsRepository.settings.first().lastViewedRoute
+        startDestination = saved.takeIf { it in mainNavRoutes } ?: Routes.HOME
+    }
+
+    // Persist whenever the user actually lands on one of the 5 main tabs, so
+    // next cold launch resumes there instead of always Home.
+    androidx.compose.runtime.LaunchedEffect(currentRoute) {
+        val route = currentRoute
+        if (route != null && route in mainNavRoutes) {
+            settingsRepository.setLastViewedRoute(route)
+        }
+    }
+
+    val resolvedStart = startDestination
+    if (resolvedStart == null) {
+        Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background))
+        return
+    }
 
     // Full-screen, immersive destinations manage their own exit affordance and
     // must never show the main app's mini player / bottom nav underneath them
@@ -210,7 +242,7 @@ private fun OzinApp() {
 
     // Slim brand identity strip shown above the main tabs (not on DJ Mode,
     // Now Playing, or Car Mode, which keep their own distinct chrome/none).
-    val showBrandBarFor = setOf(Routes.HOME, Routes.LIBRARY, Routes.LISTS, Routes.EQ, Routes.SETTINGS)
+    val showBrandBarFor = mainNavRoutes
 
     Scaffold(
         topBar = {
@@ -230,7 +262,7 @@ private fun OzinApp() {
         Box(modifier = Modifier.fillMaxSize()) {
             NavHost(
                 navController = navController,
-                startDestination = Routes.HOME,
+                startDestination = resolvedStart,
                 modifier = Modifier.padding(
                     top = padding.calculateTopPadding(),
                     bottom = padding.calculateBottomPadding(),
