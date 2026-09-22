@@ -38,6 +38,9 @@ import androidx.compose.material.icons.filled.RepeatOne
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -47,6 +50,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -74,6 +78,7 @@ import com.ozin.music.R
 import com.ozin.music.core.data.mediastore.MediaStoreScanner
 import com.ozin.music.core.domain.AudioOutputDetector
 import com.ozin.music.core.domain.LrcParser
+import com.ozin.music.core.domain.Mood
 import com.ozin.music.core.domain.NowPlayingCardRenderer
 import com.ozin.music.core.player.RepeatUiMode
 import com.ozin.music.core.settings.NowPlayingVisualMode
@@ -97,6 +102,7 @@ fun NowPlayingScreen(
     val lyrics by viewModel.lyrics.collectAsState()
     val playlists by viewModel.playlists.collectAsState()
     val settings by viewModel.settings.collectAsState()
+    val eqSuggestion by viewModel.eqSuggestion.collectAsState()
     val song = state.currentSong
     val context = LocalContext.current
     val scanner = remember(context) { MediaStoreScanner(context) }
@@ -400,6 +406,14 @@ fun NowPlayingScreen(
             emptyColor = Color.White.copy(alpha = 0.4f),
         )
 
+        eqSuggestion?.let { suggestion ->
+            EqSuggestionBanner(
+                suggestion = suggestion,
+                onApply = { viewModel.applyEqSuggestion() },
+                onDismiss = { viewModel.dismissEqSuggestion() },
+            )
+        }
+
         val currentLyric = LrcParser.currentLine(lyrics, state.positionMs)
         if (lyrics.isNotEmpty()) {
             Text(
@@ -525,6 +539,60 @@ fun NowPlayingScreen(
             }
         }
     }
+}
+
+/** Non-blocking, dismissible "try this EQ preset?" banner (item 2). Never
+ * applies anything on its own - Apply/Dismiss are the only two ways it goes
+ * away, both driven by an explicit tap. */
+@Composable
+private fun EqSuggestionBanner(
+    suggestion: EqSuggestion,
+    onApply: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.12f)),
+        shape = RoundedCornerShape(12.dp),
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Text(
+                text = stringResource(
+                    R.string.eq_suggestion_message_format,
+                    eqSuggestionMoodLabel(suggestion.mood),
+                    suggestion.presetId.name.replace('_', ' '),
+                ),
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White,
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                TextButton(onClick = onDismiss) {
+                    Text(stringResource(R.string.eq_suggestion_dismiss), color = Color.White.copy(alpha = 0.7f))
+                }
+                Button(onClick = onApply) {
+                    Text(stringResource(R.string.eq_suggestion_apply))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun eqSuggestionMoodLabel(mood: Mood): String = when (mood) {
+    Mood.ENERGETIC -> stringResource(R.string.library_mood_energetic)
+    Mood.CALM -> stringResource(R.string.library_mood_calm)
+    Mood.SAD -> stringResource(R.string.library_mood_sad)
+    Mood.HAPPY -> stringResource(R.string.library_mood_happy)
+    Mood.DARK -> stringResource(R.string.library_mood_dark)
+    Mood.WORKOUT -> stringResource(R.string.library_mood_workout)
+    Mood.NIGHT -> stringResource(R.string.library_mood_night)
 }
 
 /**

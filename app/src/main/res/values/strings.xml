@@ -102,6 +102,7 @@
     <string name="settings_audio_normalization">Audio normalization</string>
     <string name="settings_shuffle_default">Shuffle by default</string>
     <string name="settings_compact_mini_player">Compact mini player</string>
+    <string name="settings_eq_suggestion">Suggest EQ preset by mood</string>
     <string name="settings_default_repeat_mode">Default repeat mode</string>
     <string name="settings_analyze_loudness">Analyze library loudness</string>
     <string name="settings_analyze_loudness_description">Measures a real per-track loudness estimate for songs that have never been analyzed (a simplified RMS-based estimate, not full EBU R128), a few at a time. Runs in the background and can be stopped at any point.</string>
@@ -171,6 +172,9 @@
     <string name="eq_cancel">Cancel</string>
     <string name="eq_delete_preset">Delete preset</string>
     <string name="eq_no_custom_presets">No saved custom presets yet.</string>
+    <string name="eq_suggestion_message_format">This sounds %1$s — try the %2$s EQ preset?</string>
+    <string name="eq_suggestion_apply">Apply</string>
+    <string name="eq_suggestion_dismiss">Dismiss</string>
     <string name="library_select">Select</string>
     <string name="library_selected_count_format">%1$d selected</string>
     <string name="library_add_selected_to_playlist">Add to playlist</string>
@@ -303,6 +307,7 @@
     <string name="widget_small_description">Album art with a tap-to-play/pause overlay.</string>
     <string name="widget_large_name">R.A.P Music (Large)</string>
     <string name="widget_large_description">Big album art, song info and full playback controls.</string>
+    <string name="widget_recent_description">Play next recently played song</string>
 
     <!-- Shake to pause -->
     <string name="settings_shake_to_pause">Shake to pause</string>
