@@ -125,6 +125,7 @@ class BackupManager @Inject constructor(
             put("lockScreenPrivacy", settings.lockScreenPrivacy.name)
             put("nowPlayingGesturesEnabled", settings.nowPlayingGesturesEnabled)
             put("shakeToPauseEnabled", settings.shakeToPauseEnabled)
+            put("autoDownloadLyricsEnabled", settings.autoDownloadLyricsEnabled)
         }
         root.put("settings", settingsJson)
 
@@ -270,5 +271,6 @@ class BackupManager @Inject constructor(
             ?.let { settingsRepository.setLockScreenPrivacy(it) }
         settingsRepository.setNowPlayingGesturesEnabled(s.optBoolean("nowPlayingGesturesEnabled", true))
         settingsRepository.setShakeToPauseEnabled(s.optBoolean("shakeToPauseEnabled", false))
+        settingsRepository.setAutoDownloadLyricsEnabled(s.optBoolean("autoDownloadLyricsEnabled", false))
     }
 }

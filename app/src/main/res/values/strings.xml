@@ -311,6 +311,8 @@
 
     <!-- Shake to pause -->
     <string name="settings_shake_to_pause">Shake to pause</string>
+    <string name="settings_auto_download_lyrics">Automatically download lyrics from the internet</string>
+    <string name="settings_auto_download_lyrics_description">When no lyrics file is found next to a song, look it up on LRCLIB (lrclib.net) using its title, artist, album and duration, and save a copy next to the song so it works offline afterward. Off by default because it sends that song info to a third-party service.</string>
     <string name="settings_shake_to_pause_summary">Pause playback by shaking the phone while a song is playing.</string>
 
     <!-- Backup / restore -->

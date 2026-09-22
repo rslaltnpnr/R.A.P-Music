@@ -179,6 +179,10 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch { settingsRepository.setShakeToPauseEnabled(enabled) }
     }
 
+    fun toggleAutoDownloadLyrics(enabled: Boolean) {
+        viewModelScope.launch { settingsRepository.setAutoDownloadLyricsEnabled(enabled) }
+    }
+
     private val _loudnessAnalysisProgress = MutableStateFlow<LoudnessAnalysisProgress?>(null)
     val loudnessAnalysisProgress: StateFlow<LoudnessAnalysisProgress?> = _loudnessAnalysisProgress.asStateFlow()
 

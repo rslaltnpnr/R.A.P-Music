@@ -80,6 +80,14 @@ data class AppSettings(
      * it is non-blocking, never auto-applies, and can be turned off here at
      * any time from Settings > Playback. */
     val eqSuggestionEnabled: Boolean = true,
+    /** Whether the lyrics screen is allowed to automatically look up synced
+     * lyrics from the LRCLIB web API (https://lrclib.net) when no local
+     * `.lrc` file is found next to the current song. This sends the song's
+     * title/artist/album/duration to that third-party service, so it
+     * defaults to OFF and is clearly labeled in Settings. On a successful
+     * lookup the result is cached to a real local `.lrc` file so future
+     * plays of that song never hit the network again. */
+    val autoDownloadLyricsEnabled: Boolean = false,
     // Personalization (Phase 9)
     val themePreset: ThemePreset = ThemePreset.DEFAULT_DARK,
     val themeMode: ThemeMode = ThemeMode.DARK,
@@ -124,6 +132,7 @@ class SettingsRepository @Inject constructor(
         val LOUDNESS_GAIN_MB = intPreferencesKey("loudness_gain_mb")
         val LYRICS_OFFSET_MS = intPreferencesKey("lyrics_offset_ms")
         val EQ_SUGGESTION_ENABLED = booleanPreferencesKey("eq_suggestion_enabled")
+        val AUTO_DOWNLOAD_LYRICS_ENABLED = booleanPreferencesKey("auto_download_lyrics_enabled")
         val THEME_PRESET = stringPreferencesKey("theme_preset")
         val THEME_MODE = stringPreferencesKey("theme_mode")
         val ACCENT_COLOR = stringPreferencesKey("accent_color")
@@ -163,6 +172,7 @@ class SettingsRepository @Inject constructor(
             loudnessGainMb = prefs[Keys.LOUDNESS_GAIN_MB] ?: 0,
             lyricsOffsetMs = prefs[Keys.LYRICS_OFFSET_MS] ?: 0,
             eqSuggestionEnabled = prefs[Keys.EQ_SUGGESTION_ENABLED] ?: true,
+            autoDownloadLyricsEnabled = prefs[Keys.AUTO_DOWNLOAD_LYRICS_ENABLED] ?: false,
             themePreset = runCatching {
                 ThemePreset.valueOf(prefs[Keys.THEME_PRESET] ?: ThemePreset.DEFAULT_DARK.name)
             }.getOrDefault(ThemePreset.DEFAULT_DARK),
@@ -333,5 +343,9 @@ class SettingsRepository @Inject constructor(
 
     suspend fun setEqSuggestionEnabled(enabled: Boolean) {
         context.dataStore.edit { it[Keys.EQ_SUGGESTION_ENABLED] = enabled }
+    }
+
+    suspend fun setAutoDownloadLyricsEnabled(enabled: Boolean) {
+        context.dataStore.edit { it[Keys.AUTO_DOWNLOAD_LYRICS_ENABLED] = enabled }
     }
 }
