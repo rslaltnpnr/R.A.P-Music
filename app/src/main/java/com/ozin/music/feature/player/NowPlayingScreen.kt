@@ -1,5 +1,6 @@
 package com.ozin.music.feature.player
 
+import android.content.Intent
 import android.graphics.Bitmap
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateFloatAsState
@@ -63,6 +64,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -77,13 +79,16 @@ import com.ozin.music.core.data.mediastore.MediaStoreScanner
 import com.ozin.music.core.domain.AudioOutputDetector
 import com.ozin.music.core.domain.LrcParser
 import com.ozin.music.core.domain.Mood
+import com.ozin.music.core.domain.NowPlayingCardRenderer
 import com.ozin.music.core.player.RepeatUiMode
 import com.ozin.music.core.settings.NowPlayingVisualMode
 import com.ozin.music.core.ui.RatingStars
 import com.ozin.music.feature.debug.audioOutputLabel
 import kotlin.math.abs
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -103,6 +108,7 @@ fun NowPlayingScreen(
     val scanner = remember(context) { MediaStoreScanner(context) }
     val audioOutputDetector = remember(context) { AudioOutputDetector(context) }
     var accentColor by remember { mutableStateOf(Color(0xFF7C4DFF)) }
+    var albumArtBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var showQueue by remember { mutableStateOf(false) }
     var showAddToPlaylist by remember { mutableStateOf(false) }
     var showMoreMenu by remember { mutableStateOf(false) }
@@ -126,6 +132,7 @@ fun NowPlayingScreen(
                     .build()
                 val result = context.imageLoader.execute(request)
                 val bitmap = (result.drawable as? android.graphics.drawable.BitmapDrawable)?.bitmap
+                albumArtBitmap = bitmap
                 if (bitmap != null) {
                     Palette.from(bitmap).generate { palette ->
                         val swatch = palette?.vibrantSwatch ?: palette?.dominantSwatch
@@ -171,6 +178,24 @@ fun NowPlayingScreen(
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.player_car_mode)) },
                             onClick = { showMoreMenu = false; onOpenCarMode() },
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.player_share_card)) },
+                            onClick = {
+                                showMoreMenu = false
+                                val currentSong = state.currentSong
+                                if (currentSong != null) {
+                                    scope.launch {
+                                        shareNowPlayingCard(
+                                            context = context,
+                                            title = currentSong.title,
+                                            artist = currentSong.artist,
+                                            albumArt = albumArtBitmap,
+                                            accentColorArgb = accentColor.toArgb(),
+                                        )
+                                    }
+                                }
+                            },
                         )
                         Text(
                             stringResource(R.string.player_playback_speed),
@@ -568,6 +593,35 @@ private fun eqSuggestionMoodLabel(mood: Mood): String = when (mood) {
     Mood.DARK -> stringResource(R.string.library_mood_dark)
     Mood.WORKOUT -> stringResource(R.string.library_mood_workout)
     Mood.NIGHT -> stringResource(R.string.library_mood_night)
+}
+
+/**
+ * Renders the shareable Now Playing card off the main thread (plain
+ * [android.graphics.Canvas] drawing, no network call) and hands the result to
+ * Android's native share sheet via the app's existing FileProvider.
+ */
+private suspend fun shareNowPlayingCard(
+    context: android.content.Context,
+    title: String,
+    artist: String,
+    albumArt: Bitmap?,
+    accentColorArgb: Int,
+) {
+    val uri = withContext(Dispatchers.Default) {
+        val card = NowPlayingCardRenderer.render(
+            title = title,
+            artist = artist,
+            albumArt = albumArt,
+            accentColorArgb = accentColorArgb,
+        )
+        NowPlayingCardRenderer.saveToShareCache(context, card)
+    }
+    val sendIntent = Intent(Intent.ACTION_SEND).apply {
+        type = "image/png"
+        putExtra(Intent.EXTRA_STREAM, uri)
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    }
+    context.startActivity(Intent.createChooser(sendIntent, context.getString(R.string.player_share_card)))
 }
 
 /** Rough per-drag-event threshold (not total gesture distance) above which a

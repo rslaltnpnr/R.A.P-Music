@@ -2,4 +2,7 @@
 <paths xmlns:android="http://schemas.android.com/apk/res/android">
     <external-path name="external_files" path="." />
     <external-files-path name="external_app_files" path="." />
+    <!-- Narrowly scoped to the "share" cache subdirectory used to render and
+         hand off the shareable Now Playing card (see NowPlayingCardRenderer). -->
+    <cache-path name="share_cache" path="share/" />
 </paths>

@@ -66,6 +66,7 @@
     <string name="player_more_options">More options</string>
     <string name="player_lyrics">Lyrics</string>
     <string name="player_car_mode">Car mode</string>
+    <string name="player_share_card">Share Now Playing card</string>
     <string name="player_playback_speed">Playback speed</string>
     <string name="player_speed_format">%1$sx</string>
     <string name="player_speed_selected_format">%1$sx ✓</string>
