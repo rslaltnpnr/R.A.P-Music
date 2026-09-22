@@ -64,6 +64,7 @@
     <string name="player_more_options">Diğer seçenekler</string>
     <string name="player_lyrics">Şarkı sözleri</string>
     <string name="player_car_mode">Araç modu</string>
+    <string name="player_share_card">Şimdi Çalıyor kartını paylaş</string>
     <string name="player_playback_speed">Oynatma hızı</string>
     <string name="player_speed_format">%1$sx</string>
     <string name="player_speed_selected_format">%1$sx ✓</string>

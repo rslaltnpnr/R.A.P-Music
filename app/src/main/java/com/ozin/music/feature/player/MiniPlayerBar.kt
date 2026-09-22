@@ -1,9 +1,12 @@
 package com.ozin.music.feature.player
 
+import android.media.AudioManager
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -35,6 +39,17 @@ import com.ozin.music.R
 import com.ozin.music.core.data.mediastore.MediaStoreScanner
 import com.ozin.music.core.ui.components.WaveformMotif
 import com.ozin.music.core.ui.theme.NeonGlowBackdrop
+import kotlin.math.abs
+
+/** Per-drag-event horizontal distance (not total gesture length) above which
+ * a swipe on the mini player is treated as deliberate next/previous, mirroring
+ * [com.ozin.music.feature.player.NowPlayingScreen]'s own swipe threshold. */
+private const val MINI_PLAYER_SWIPE_TRIGGER_PX = 120f
+
+/** Accumulated vertical drag distance that corresponds to one volume step,
+ * so dragging up/down smoothly raises/lowers the media stream volume instead
+ * of only reacting once per whole gesture. */
+private const val VOLUME_DRAG_STEP_PX = 40f
 
 @Composable
 fun MiniPlayerBar(onExpand: () -> Unit, viewModel: PlayerViewModel = hiltViewModel()) {
@@ -43,6 +58,7 @@ fun MiniPlayerBar(onExpand: () -> Unit, viewModel: PlayerViewModel = hiltViewMod
     val context = LocalContext.current
     val scanner = remember(context) { MediaStoreScanner(context) }
     val accent = MaterialTheme.colorScheme.primary
+    val audioManager = remember(context) { context.getSystemService(AudioManager::class.java) }
 
     Box(
         modifier = Modifier
@@ -65,6 +81,48 @@ fun MiniPlayerBar(onExpand: () -> Unit, viewModel: PlayerViewModel = hiltViewMod
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable(onClick = onExpand)
+                .pointerInput(song.id) {
+                    var horizontalAccum = 0f
+                    detectHorizontalDragGestures(
+                        onDragStart = { horizontalAccum = 0f },
+                        onHorizontalDrag = { change, dragAmount ->
+                            change.consume()
+                            horizontalAccum += dragAmount
+                        },
+                        onDragEnd = {
+                            if (abs(horizontalAccum) > MINI_PLAYER_SWIPE_TRIGGER_PX) {
+                                if (horizontalAccum < 0) viewModel.next() else viewModel.previous()
+                            }
+                        },
+                    )
+                }
+                .pointerInput(song.id) {
+                    var verticalAccum = 0f
+                    detectVerticalDragGestures(
+                        onDragStart = { verticalAccum = 0f },
+                        onVerticalDrag = { change, dragAmount ->
+                            change.consume()
+                            verticalAccum += dragAmount
+                            while (verticalAccum <= -VOLUME_DRAG_STEP_PX) {
+                                audioManager?.adjustStreamVolume(
+                                    AudioManager.STREAM_MUSIC,
+                                    AudioManager.ADJUST_RAISE,
+                                    AudioManager.FLAG_SHOW_UI,
+                                )
+                                verticalAccum += VOLUME_DRAG_STEP_PX
+                            }
+                            while (verticalAccum >= VOLUME_DRAG_STEP_PX) {
+                                audioManager?.adjustStreamVolume(
+                                    AudioManager.STREAM_MUSIC,
+                                    AudioManager.ADJUST_LOWER,
+                                    AudioManager.FLAG_SHOW_UI,
+                                )
+                                verticalAccum -= VOLUME_DRAG_STEP_PX
+                            }
+                        },
+                        onDragEnd = { verticalAccum = 0f },
+                    )
+                }
                 .padding(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
