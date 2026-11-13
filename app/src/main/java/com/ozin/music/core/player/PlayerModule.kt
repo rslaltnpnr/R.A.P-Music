@@ -1,10 +1,14 @@
 package com.ozin.music.core.player
 
 import android.content.Context
+import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DefaultDataSource
+import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.audio.AudioSink
+import androidx.media3.exoplayer.audio.DefaultAudioSink
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import com.ozin.music.core.remote.RemoteAuthDataSourceFactory
 import com.ozin.music.core.remote.RemoteCredentialIndex
@@ -39,10 +43,22 @@ object PlayerModule {
     fun provideExoPlayer(
         @ApplicationContext context: Context,
         httpDataSourceFactory: DataSource.Factory,
+        classicAudioProcessor: ClassicAudioProcessor,
     ): ExoPlayer {
         val dataSourceFactory = DefaultDataSource.Factory(context, httpDataSourceFactory)
         val mediaSourceFactory = DefaultMediaSourceFactory(dataSourceFactory)
-        return ExoPlayer.Builder(context)
+        val renderers = object : DefaultRenderersFactory(context) {
+            override fun buildAudioSink(
+                context: Context,
+                enableFloatOutput: Boolean,
+                enableAudioTrackPlaybackParams: Boolean,
+            ): AudioSink = DefaultAudioSink.Builder(context)
+                .setEnableFloatOutput(false)
+                .setEnableAudioTrackPlaybackParams(enableAudioTrackPlaybackParams)
+                .setAudioProcessors(arrayOf(classicAudioProcessor))
+                .build()
+        }
+        return ExoPlayer.Builder(context, renderers)
             .setMediaSourceFactory(mediaSourceFactory)
             .build()
     }

@@ -37,6 +37,7 @@ class PlaybackService : MediaLibraryService() {
 
     @Inject lateinit var exoPlayer: ExoPlayer
     @Inject lateinit var effectsChain: EffectsChain
+    @Inject lateinit var classicAudioProcessor: ClassicAudioProcessor
     @Inject lateinit var listeningStatsRecorder: ListeningStatsRecorder
     @Inject lateinit var crossfadeController: CrossfadeController
     @Inject lateinit var playbackFader: PlaybackFader
@@ -94,6 +95,7 @@ class PlaybackService : MediaLibraryService() {
 
         settingsJob = serviceScope.launch {
             settingsRepository.settings.collect { settings ->
+                classicAudioProcessor.balance = settings.stereoBalancePercent / 100f
                 effectsChain.enabled = settings.eqEnabled
                 effectsChain.setBassBoostStrength(settings.bassBoostStrength)
                 effectsChain.setVirtualizerStrength(settings.virtualizerStrength)

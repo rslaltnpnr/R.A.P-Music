@@ -327,4 +327,47 @@
     <!-- Arama geçmişi -->
     <string name="search_recent_searches">Son aramalar</string>
     <string name="search_clear_history">Arama geçmişini temizle</string>
+
+    <!-- Classic player -->
+    <string name="classic_ready">R.A.P MUSIC - HAZIR</string>
+    <string name="classic_menu">Çalar menüsü</string>
+    <string name="classic_menu_add">Parça ekle</string>
+    <string name="classic_modern_player">Modern çalar ve şarkı sözleri</string>
+    <string name="classic_dashboard">Dinleme paneli</string>
+    <string name="classic_advanced_eq">Gelişmiş ekolayzır</string>
+    <string name="classic_eq_auto">Ekolayzır hazır ayar önerileri</string>
+    <string name="classic_save_queue">Çalma listesi olarak kaydet</string>
+    <string name="classic_clear_queue">Kuyruğu temizle</string>
+    <string name="classic_clear_info">Parçalar yalnızca kuyruktan çıkarılır, cihazdan silinmez.</string>
+    <string name="classic_cancel">İptal</string>
+    <string name="classic_rollup">Paneli daralt veya genişlet</string>
+    <string name="classic_exit">Çalar penceresini kapat</string>
+    <string name="classic_time">Geçen veya kalan süreyi göster</string>
+    <string name="classic_visualizer">Görselleştirme modunu değiştir</string>
+    <string name="classic_volume">Medya sesi</string>
+    <string name="classic_balance">Stereo dengesi</string>
+    <string name="classic_playlist">Çalma listesi panelini aç veya kapat</string>
+    <string name="classic_seek">Parça konumu</string>
+    <string name="classic_previous">Önceki parça</string>
+    <string name="classic_play">Oynat</string>
+    <string name="classic_pause">Duraklat</string>
+    <string name="classic_stop">Durdur ve başa al</string>
+    <string name="classic_next">Sonraki parça</string>
+    <string name="classic_shuffle">Karışık çal</string>
+    <string name="classic_repeat">Tekrar modu</string>
+    <string name="classic_close_eq">Ekolayzırı kapat</string>
+    <string name="classic_eq_band">Ekolayzır bandı</string>
+    <string name="classic_close_playlist">Çalma listesini kapat</string>
+    <string name="classic_empty_queue">PARÇA EKLE</string>
+    <string name="classic_remove">Seçili parçayı kuyruktan çıkar</string>
+    <string name="classic_list_options">Çalma listesi seçenekleri</string>
+    <string name="classic_scanning">Cihazdaki müzikler taranıyor…</string>
+    <string name="classic_connecting">Çalara bağlanılıyor…</string>
+    <string name="classic_no_songs">Eşleşen parça bulunamadı.</string>
+    <string name="classic_added">%1$d parça eklendi</string>
+    <string name="classic_done">Bitti</string>
+    <string name="classic_rescan">Tekrar tara</string>
+    <string name="classic_playlist_name">Çalma listesi adı</string>
+    <string name="classic_save">Kaydet</string>
+    <string name="classic_select">Kuyruktaki sonraki parçayı seç</string>
 </resources>

@@ -8,6 +8,23 @@ ads, no accounts, no telemetry — everything it does is local to your device.
 > `resValue` in `app/build.gradle.kts`), so it can be renamed trivially.
 > The package name (`com.ozin.music`) is set in `app/build.gradle.kts`.
 
+## Classic player
+
+The Android app opens in the R.A.P Music Classic player. Its three docked panels
+recreate the Winamp 2.x layout with newly drawn controls and R.A.P Music branding.
+The windows stack in portrait and place the playlist beside the player on wide
+landscape displays. EQ and PL show or hide their panels; the title bars also
+provide compact roll-up modes.
+
+- **ADD / Eject** adds songs from the device library to the current queue.
+- **Play, Pause, Stop, seek, shuffle and repeat** control the existing Media3 player.
+- **Time and spectrum displays** toggle elapsed/remaining and spectrum/wave/off.
+  The spectrum reads the app's decoded PCM, without using the microphone.
+- **EQ** provides ten visual controls and preamp. On hardware exposing fewer
+  bands, the custom curve is mapped onto the available bands.
+- **Player menu** opens DJ Mode, the library, playlists, settings, and the previous
+  player with lyrics. LIST opens queue save and clear actions.
+
 ## Features
 
 OZIN Music was built from scratch across ten phases into a complete, fully

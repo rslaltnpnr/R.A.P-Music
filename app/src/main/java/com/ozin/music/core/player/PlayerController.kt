@@ -38,6 +38,10 @@ enum class RepeatUiMode { OFF, ALL, ONE }
 data class PlaybackUiState(
     val currentSong: Song? = null,
     val isPlaying: Boolean = false,
+    val isStopped: Boolean = false,
+    val audioBitrate: Int = 0,
+    val audioSampleRate: Int = 0,
+    val audioChannels: Int = 0,
     val positionMs: Long = 0L,
     val durationMs: Long = 0L,
     val shuffleEnabled: Boolean = false,
@@ -108,6 +112,7 @@ class PlayerController @Inject constructor(
     }
 
     fun playSongs(songs: List<Song>, startIndex: Int) {
+        if (songs.isEmpty()) return
         val ctrl = controller ?: return
         songs.forEach { songCache[it.id] = it }
         val safeIndex = startIndex.coerceIn(0, (songs.size - 1).coerceAtLeast(0))
@@ -136,7 +141,9 @@ class PlayerController @Inject constructor(
                 val ctrlNow = controller ?: return@launch
                 if (index >= ctrlNow.mediaItemCount) continue
                 val resolved = songs[index].toMediaItem()
-                if (index < ctrlNow.mediaItemCount) {
+                if (index < ctrlNow.mediaItemCount &&
+                    ctrlNow.getMediaItemAt(index).mediaId == resolved.mediaId
+                ) {
                     ctrlNow.replaceMediaItem(index, resolved)
                 }
                 if (index == ctrlNow.currentMediaItemIndex) {
@@ -208,8 +215,36 @@ class PlayerController @Inject constructor(
 
     fun togglePlayPause() {
         val ctrl = controller ?: return
-        if (ctrl.isPlaying) ctrl.pause() else ctrl.play()
+        if (ctrl.isPlaying) ctrl.pause() else play()
     }
+
+    fun play() {
+        controller?.let {
+            if (it.mediaItemCount == 0) return
+            if (it.playbackState == Player.STATE_IDLE) it.prepare()
+            it.play()
+        }
+    }
+
+    fun pause() { controller?.pause() }
+
+    fun stopAndRewind() {
+        controller?.let {
+            if (it.mediaItemCount == 0) return
+            it.pause()
+            it.seekTo(0L)
+            it.stop()
+        }
+    }
+
+    fun playQueueIndex(index: Int) {
+        val ctrl = controller ?: return
+        if (index !in 0 until ctrl.mediaItemCount) return
+        ctrl.seekTo(index, 0L)
+        play()
+    }
+
+    fun clearQueue() { controller?.clearMediaItems() }
 
     fun seekTo(positionMs: Long) {
         controller?.seekTo(positionMs)
@@ -242,7 +277,9 @@ class PlayerController @Inject constructor(
         scope.launch {
             val resolved = song.toMediaItem()
             val ctrlNow = controller ?: return@launch
-            if (insertIndex < ctrlNow.mediaItemCount) ctrlNow.replaceMediaItem(insertIndex, resolved)
+            if (insertIndex < ctrlNow.mediaItemCount &&
+                ctrlNow.getMediaItemAt(insertIndex).mediaId == resolved.mediaId
+            ) ctrlNow.replaceMediaItem(insertIndex, resolved)
         }
     }
 
@@ -254,7 +291,9 @@ class PlayerController @Inject constructor(
         scope.launch {
             val resolved = song.toMediaItem()
             val ctrlNow = controller ?: return@launch
-            if (insertIndex < ctrlNow.mediaItemCount) ctrlNow.replaceMediaItem(insertIndex, resolved)
+            if (insertIndex < ctrlNow.mediaItemCount &&
+                ctrlNow.getMediaItemAt(insertIndex).mediaId == resolved.mediaId
+            ) ctrlNow.replaceMediaItem(insertIndex, resolved)
         }
     }
 
@@ -399,6 +438,14 @@ class PlayerController @Inject constructor(
             refreshArtworkSourceForCurrent()
         }
 
+        override fun onTracksChanged(tracks: androidx.media3.common.Tracks) {
+            syncFromPlayer()
+        }
+
+        override fun onTimelineChanged(timeline: androidx.media3.common.Timeline, reason: Int) {
+            syncFromPlayer()
+        }
+
         override fun onPlaybackStateChanged(playbackState: Int) {
             syncFromPlayer()
         }
@@ -439,9 +486,17 @@ class PlayerController @Inject constructor(
             ctrl.getMediaItemAt(index).mediaId.toLongOrNull()?.let { songCache[it] }
         }
 
+        val audioFormat = ctrl.currentTracks.groups.firstNotNullOfOrNull { group ->
+            if (group.type != androidx.media3.common.C.TRACK_TYPE_AUDIO) null
+            else (0 until group.length).firstOrNull { group.isTrackSelected(it) }?.let(group::getTrackFormat)
+        }
         _state.value = _state.value.copy(
             currentSong = song,
             isPlaying = ctrl.isPlaying,
+            isStopped = ctrl.playbackState == Player.STATE_IDLE,
+            audioBitrate = audioFormat?.bitrate?.coerceAtLeast(0) ?: 0,
+            audioSampleRate = audioFormat?.sampleRate?.coerceAtLeast(0) ?: 0,
+            audioChannels = audioFormat?.channelCount?.coerceAtLeast(0) ?: 0,
             positionMs = ctrl.currentPosition.coerceAtLeast(0),
             durationMs = ctrl.duration.coerceAtLeast(0),
             shuffleEnabled = ctrl.shuffleModeEnabled,

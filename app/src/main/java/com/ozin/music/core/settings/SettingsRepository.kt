@@ -70,6 +70,7 @@ data class AppSettings(
     val eqPreset: EqPresetId = EqPresetId.NORMAL,
     val eqCustomBands: List<Int> = emptyList(),
     val eqPreampMb: Int = 0,
+    val stereoBalancePercent: Int = 0,
     val bassBoostStrength: Int = 0,
     val virtualizerStrength: Int = 0,
     val loudnessGainMb: Int = 0,
@@ -126,6 +127,7 @@ class SettingsRepository @Inject constructor(
         val EQ_ENABLED = booleanPreferencesKey("eq_enabled")
         val EQ_PRESET = stringPreferencesKey("eq_preset")
         val EQ_CUSTOM_BANDS = stringPreferencesKey("eq_custom_bands")
+        val STEREO_BALANCE = intPreferencesKey("stereo_balance_percent")
         val EQ_PREAMP_MB = intPreferencesKey("eq_preamp_mb")
         val BASS_BOOST_STRENGTH = intPreferencesKey("bass_boost_strength")
         val VIRTUALIZER_STRENGTH = intPreferencesKey("virtualizer_strength")
@@ -167,6 +169,7 @@ class SettingsRepository @Inject constructor(
             eqCustomBands = prefs[Keys.EQ_CUSTOM_BANDS]?.takeIf { it.isNotBlank() }
                 ?.split(",")?.mapNotNull { it.toIntOrNull() } ?: emptyList(),
             eqPreampMb = prefs[Keys.EQ_PREAMP_MB] ?: 0,
+            stereoBalancePercent = prefs[Keys.STEREO_BALANCE] ?: 0,
             bassBoostStrength = prefs[Keys.BASS_BOOST_STRENGTH] ?: 0,
             virtualizerStrength = prefs[Keys.VIRTUALIZER_STRENGTH] ?: 0,
             loudnessGainMb = prefs[Keys.LOUDNESS_GAIN_MB] ?: 0,
@@ -262,6 +265,17 @@ class SettingsRepository @Inject constructor(
 
     suspend fun setEqCustomBands(bands: List<Int>) {
         context.dataStore.edit { it[Keys.EQ_CUSTOM_BANDS] = bands.joinToString(",") }
+    }
+
+    suspend fun setCustomEqCurve(bands: List<Int>) {
+        context.dataStore.edit {
+            it[Keys.EQ_PRESET] = EqPresetId.CUSTOM.name
+            it[Keys.EQ_CUSTOM_BANDS] = bands.joinToString(",")
+        }
+    }
+
+    suspend fun setStereoBalance(percent: Int) {
+        context.dataStore.edit { it[Keys.STEREO_BALANCE] = percent.coerceIn(-100, 100) }
     }
 
     suspend fun setEqPreampMb(mb: Int) {

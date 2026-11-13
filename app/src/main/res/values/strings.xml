@@ -329,4 +329,47 @@
     <!-- Search history -->
     <string name="search_recent_searches">Recent searches</string>
     <string name="search_clear_history">Clear search history</string>
+
+    <!-- Classic player -->
+    <string name="classic_ready">R.A.P MUSIC - READY</string>
+    <string name="classic_menu">Player menu</string>
+    <string name="classic_menu_add">Add tracks</string>
+    <string name="classic_modern_player">Modern player and lyrics</string>
+    <string name="classic_dashboard">Listening dashboard</string>
+    <string name="classic_advanced_eq">Advanced equalizer</string>
+    <string name="classic_eq_auto">EQ preset suggestions</string>
+    <string name="classic_save_queue">Save as playlist</string>
+    <string name="classic_clear_queue">Clear queue</string>
+    <string name="classic_clear_info">This removes tracks from the queue, not your device.</string>
+    <string name="classic_cancel">Cancel</string>
+    <string name="classic_rollup">Roll up or expand panel</string>
+    <string name="classic_exit">Close player window</string>
+    <string name="classic_time">Toggle elapsed or remaining time</string>
+    <string name="classic_visualizer">Change visualizer mode</string>
+    <string name="classic_volume">Media volume</string>
+    <string name="classic_balance">Stereo balance</string>
+    <string name="classic_playlist">Toggle playlist panel</string>
+    <string name="classic_seek">Track position</string>
+    <string name="classic_previous">Previous track</string>
+    <string name="classic_play">Play</string>
+    <string name="classic_pause">Pause</string>
+    <string name="classic_stop">Stop and rewind</string>
+    <string name="classic_next">Next track</string>
+    <string name="classic_shuffle">Shuffle</string>
+    <string name="classic_repeat">Repeat mode</string>
+    <string name="classic_close_eq">Close equalizer</string>
+    <string name="classic_eq_band">Equalizer band</string>
+    <string name="classic_close_playlist">Close playlist</string>
+    <string name="classic_empty_queue">ADD FILES TO START</string>
+    <string name="classic_remove">Remove selected track from queue</string>
+    <string name="classic_list_options">Playlist options</string>
+    <string name="classic_scanning">Scanning device music…</string>
+    <string name="classic_connecting">Connecting to the player…</string>
+    <string name="classic_no_songs">No matching songs found.</string>
+    <string name="classic_added">%1$d added</string>
+    <string name="classic_done">Done</string>
+    <string name="classic_rescan">Rescan</string>
+    <string name="classic_playlist_name">Playlist name</string>
+    <string name="classic_save">Save</string>
+    <string name="classic_select">Select next queue track</string>
 </resources>

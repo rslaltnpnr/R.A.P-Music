@@ -161,15 +161,20 @@ class EffectsChain @Inject constructor() : Player.Listener {
         val eq = equalizer ?: return
         try {
             val range = eq.bandLevelRange
-            for (i in bands.indices) {
-                if (i >= eq.numberOfBands) break
-                val level = (bands[i] + desiredPreampMb).coerceIn(range[0].toInt(), range[1].toInt())
+            val levels = mapCustomBands(bands, eq.numberOfBands.toInt(), range)
+            for (i in levels.indices) {
+                val level = (levels[i] + desiredPreampMb).coerceIn(range[0].toInt(), range[1].toInt())
                 eq.setBandLevel(i.toShort(), level.toShort())
             }
         } catch (e: Exception) {
             Log.w(TAG, "Failed to apply custom EQ bands", e)
         }
     }
+
+    private fun mapCustomBands(bands: IntArray, count: Int, range: ShortArray): IntArray =
+        if (bands.size == 10 && count != bands.size) {
+            EqPresets.compressCustomCurve(bands, count, range[0].toInt()..range[1].toInt())
+        } else bands.take(count).toIntArray()
 
     /** Sets a single band's level directly (millibel), used by the custom
      * band sliders in the Equalizer screen. Also records it as the user's
@@ -194,7 +199,7 @@ class EffectsChain @Inject constructor() : Player.Listener {
         try {
             val range = eq.bandLevelRange
             val base = if (desiredPreset == EqPresetId.CUSTOM && desiredCustomBands.isNotEmpty()) {
-                desiredCustomBands
+                mapCustomBands(desiredCustomBands, eq.numberOfBands.toInt(), range)
             } else {
                 EqPresets.mapToDeviceBands(
                     EqPresets.referenceTables[desiredPreset] ?: return,

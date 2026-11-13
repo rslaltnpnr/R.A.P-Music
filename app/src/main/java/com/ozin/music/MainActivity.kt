@@ -69,6 +69,7 @@ import com.ozin.music.core.ui.theme.OzinMusicTheme
 import com.ozin.music.core.ui.theme.ThemeMode
 import com.ozin.music.feature.bluetooth.BluetoothDevicesScreen
 import com.ozin.music.feature.carmode.CarModeScreen
+import com.ozin.music.feature.classic.ClassicPlayerScreen
 import com.ozin.music.feature.debug.DebugScreen
 import com.ozin.music.feature.dj.DjModeScreen
 import com.ozin.music.feature.duplicates.DuplicatesScreen
@@ -105,6 +106,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 object Routes {
+    const val CLASSIC = "classic"
     const val HOME = "home"
     const val LIBRARY = "library"
     const val LISTS = "lists"
@@ -182,7 +184,7 @@ class MainActivity : ComponentActivity() {
                     )
                 }
                 if (hasPermission) {
-                    OzinApp(settingsRepository)
+                    OzinApp(onExit = { finish() })
                 } else {
                     PermissionScreen(onGranted = { hasPermission = true })
                 }
@@ -196,49 +198,26 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-/** The 5 main bottom-nav destinations eligible for "resume where I left off"
- * persistence - anything else (Now Playing, a detail screen, etc.) is never
- * saved as a start destination. */
+/** Secondary screens keep their existing tabs; Classic is the main player. */
 private val mainNavRoutes = setOf(Routes.HOME, Routes.LIBRARY, Routes.LISTS, Routes.EQ, Routes.SETTINGS)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun OzinApp(settingsRepository: SettingsRepository) {
+private fun OzinApp(onExit: () -> Unit) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
-
-    // Resolved once at cold start from the persisted last-viewed main tab
-    // (falls back to Home when there is none yet, e.g. a fresh install).
-    // Resolving this asynchronously (rather than a blocking DataStore read)
-    // keeps the composition off the main-thread I/O path; the app simply
-    // shows a brief blank background frame while it resolves, same as the
-    // permission-gate above.
-    var startDestination by remember { mutableStateOf<String?>(null) }
-    androidx.compose.runtime.LaunchedEffect(Unit) {
-        val saved = settingsRepository.settings.first().lastViewedRoute
-        startDestination = saved.takeIf { it in mainNavRoutes } ?: Routes.HOME
-    }
-
-    // Persist whenever the user actually lands on one of the 5 main tabs, so
-    // next cold launch resumes there instead of always Home.
-    androidx.compose.runtime.LaunchedEffect(currentRoute) {
-        val route = currentRoute
-        if (route != null && route in mainNavRoutes) {
-            settingsRepository.setLastViewedRoute(route)
+    fun openClassic() {
+        navController.navigate(Routes.CLASSIC) {
+            popUpTo(Routes.CLASSIC)
+            launchSingleTop = true
         }
-    }
-
-    val resolvedStart = startDestination
-    if (resolvedStart == null) {
-        Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background))
-        return
     }
 
     // Full-screen, immersive destinations manage their own exit affordance and
     // must never show the main app's mini player / bottom nav underneath them
     // (it used to overlap DJ Mode's controls at the bottom of the screen).
-    val hideChromeFor = setOf(Routes.NOW_PLAYING, Routes.DJ_MODE, Routes.CAR_MODE)
+    val hideChromeFor = setOf(null, Routes.CLASSIC, Routes.NOW_PLAYING, Routes.DJ_MODE, Routes.CAR_MODE)
 
     // Slim brand identity strip shown above the main tabs (not on DJ Mode,
     // Now Playing, or Car Mode, which keep their own distinct chrome/none).
@@ -253,7 +232,7 @@ private fun OzinApp(settingsRepository: SettingsRepository) {
         bottomBar = {
             if (currentRoute !in hideChromeFor) {
                 Column {
-                    MiniPlayerBar(onExpand = { navController.navigate(Routes.NOW_PLAYING) })
+                    MiniPlayerBar(onExpand = ::openClassic)
                     OzinBottomNav(navController, currentRoute)
                 }
             }
@@ -262,16 +241,28 @@ private fun OzinApp(settingsRepository: SettingsRepository) {
         Box(modifier = Modifier.fillMaxSize()) {
             NavHost(
                 navController = navController,
-                startDestination = resolvedStart,
+                startDestination = Routes.CLASSIC,
                 modifier = Modifier.padding(
                     top = padding.calculateTopPadding(),
                     bottom = padding.calculateBottomPadding(),
                 ),
             ) {
-                composable(Routes.HOME) { HomeScreen(onSongClick = { navController.navigate(Routes.NOW_PLAYING) }) }
+                composable(Routes.CLASSIC) {
+                    ClassicPlayerScreen(
+                        onLibrary = { navController.navigate(Routes.LIBRARY) },
+                        onPlaylists = { navController.navigate(Routes.LISTS) },
+                        onAdvancedEq = { navController.navigate(Routes.EQ) },
+                        onModernPlayer = { navController.navigate(Routes.NOW_PLAYING) },
+                        onDj = { navController.navigate(Routes.DJ_MODE) },
+                        onSettings = { navController.navigate(Routes.SETTINGS) },
+                        onDashboard = { navController.navigate(Routes.HOME) },
+                        onExit = onExit,
+                    )
+                }
+                composable(Routes.HOME) { HomeScreen(onSongClick = ::openClassic) }
                 composable(Routes.LIBRARY) {
                     LibraryScreen(
-                        onSongClick = { navController.navigate(Routes.NOW_PLAYING) },
+                        onSongClick = ::openClassic,
                         onEditSong = { songId -> navController.navigate(Routes.metadataEdit(songId)) },
                         onManageFile = { songId -> navController.navigate(Routes.fileManagement(songId)) },
                         onSimilarSongs = { songId -> navController.navigate(Routes.similarSongs(songId)) },
@@ -336,7 +327,7 @@ private fun OzinApp(settingsRepository: SettingsRepository) {
                 composable(Routes.SMART_SEARCH) {
                     SmartSearchScreen(
                         onBack = { navController.popBackStack() },
-                        onSongClick = { navController.navigate(Routes.NOW_PLAYING) },
+                        onSongClick = ::openClassic,
                     )
                 }
                 composable(
@@ -345,7 +336,7 @@ private fun OzinApp(settingsRepository: SettingsRepository) {
                 ) {
                     SimilarSongsScreen(
                         onBack = { navController.popBackStack() },
-                        onSongClick = { navController.navigate(Routes.NOW_PLAYING) },
+                        onSongClick = ::openClassic,
                     )
                 }
                 composable(Routes.BLUETOOTH_DEVICES) { BluetoothDevicesScreen() }
@@ -361,7 +352,7 @@ private fun OzinApp(settingsRepository: SettingsRepository) {
                 ) {
                     RemoteBrowseScreen(
                         onBack = { navController.popBackStack() },
-                        onSongClick = { navController.navigate(Routes.NOW_PLAYING) },
+                        onSongClick = ::openClassic,
                     )
                 }
                 composable(Routes.CAR_MODE) { CarModeScreen(onExit = { navController.popBackStack() }) }
@@ -377,7 +368,7 @@ private fun OzinApp(settingsRepository: SettingsRepository) {
                 ) {
                     SmartPlaylistDetailScreen(
                         onBack = { navController.popBackStack() },
-                        onSongClick = { navController.navigate(Routes.NOW_PLAYING) },
+                        onSongClick = ::openClassic,
                     )
                 }
                 composable(Routes.NOW_PLAYING) {
@@ -409,7 +400,7 @@ private fun OzinApp(settingsRepository: SettingsRepository) {
                 ) {
                     PlaylistDetailScreen(
                         onBack = { navController.popBackStack() },
-                        onSongClick = { navController.navigate(Routes.NOW_PLAYING) },
+                        onSongClick = ::openClassic,
                     )
                 }
             }

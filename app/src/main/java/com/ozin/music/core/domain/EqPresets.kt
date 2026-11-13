@@ -1,5 +1,9 @@
 package com.ozin.music.core.domain
 
+import kotlin.math.ceil
+import kotlin.math.floor
+import kotlin.math.roundToInt
+
 /**
  * Pure EQ preset logic: a reference 10-band gain table (in millibel, roughly
  * matching typical 10-band consumer EQ center frequencies from 31Hz to
@@ -46,6 +50,27 @@ object EqPresets {
             val refIndex = ((i.toFloat() / (deviceBandCount - 1)) * (reference.size - 1)).let { Math.round(it) }
                 .coerceIn(0, reference.size - 1)
             reference[refIndex].coerceIn(levelRange.first, levelRange.last)
+        }
+    }
+
+    /**
+     * Fold a wider, user-edited curve onto a smaller hardware EQ without
+     * dropping source bands. Each device band averages the interval it covers,
+     * including fractional overlap when the band counts are not divisible.
+     */
+    fun compressCustomCurve(reference: IntArray, deviceBandCount: Int, levelRange: IntRange): IntArray {
+        if (deviceBandCount <= 0 || reference.isEmpty()) return IntArray(0)
+        if (deviceBandCount >= reference.size) return mapToDeviceBands(reference, deviceBandCount, levelRange)
+        val span = reference.size.toDouble() / deviceBandCount
+        return IntArray(deviceBandCount) { target ->
+            val start = target * span
+            val end = (target + 1) * span
+            var sum = 0.0
+            for (source in floor(start).toInt() until ceil(end).toInt().coerceAtMost(reference.size)) {
+                val overlap = minOf(end, source + 1.0) - maxOf(start, source.toDouble())
+                sum += reference[source] * overlap
+            }
+            (sum / span).roundToInt().coerceIn(levelRange.first, levelRange.last)
         }
     }
 

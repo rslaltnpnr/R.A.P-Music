@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+
     <!-- Media library scanning permissions. -->
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
     <!-- Used only for the opt-in (default OFF) automatic lyrics download from
